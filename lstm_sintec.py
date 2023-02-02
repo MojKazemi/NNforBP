@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 from sklearn.preprocessing import normalize, MinMaxScaler
 from sklearn.model_selection import GridSearchCV
+from sklearn.decomposition import PCA
 import tensorflow as tf
 import keras
 from keras.models import Sequential
@@ -74,21 +75,27 @@ class lstm_sintec(object):
         self.ssy_sbp = ytrain_sbp.std()
         ytrain_sbp = (ytrain_sbp-self.mmy_sbp)/self.ssy_sbp
 
+        # Apply PCA to the data
+        print(f"Number of features before PCA: {xtrain.shape[1]}")
+        pca = PCA(n_components=0.95)
+        xtrain = pca.fit_transform(xtrain)
+
         # reshape dataset
         xtrain_reshape = np.reshape(
             xtrain, (xtrain.shape[0], xtrain.shape[1], 1))
         xtest_reshape = np.reshape(xtest, (xtest.shape[0], xtest.shape[1], 1))
         return xtrain_reshape, xtest_reshape,ytrain_dbp, ytrain_sbp, ytest_dbp, ytest_sbp
 
-    def get_model(self,units,_learningRate):  # n_timessteps,n_features):
+    def get_model(self, n_features, units1=20, units2=20, units3=32, _learningRate=.0001):
+
         model = Sequential(name='model_LSTM')
-        model.add(Conv1D(20, kernel_size=2, strides=1,
-                  activation='relu', input_shape=(12, 1), name='Conv1D_1'))
+        model.add(Conv1D(units1, kernel_size=2, strides=1,
+                  activation='relu', input_shape=(n_features, 1), name='Conv1D_1'))
         model.add(MaxPooling1D(pool_size=2, strides=2, name='MaxPooling1D_1'))
-        model.add(Conv1D(20, kernel_size=2, strides=1,
+        model.add(Conv1D(units2, kernel_size=2, strides=1,
                   activation='relu', name='Conv1D_2'))
         model.add(MaxPooling1D(pool_size=2, strides=2, name='MaxPooling1D_2'))
-        model.add(LSTM(units, activation='tanh', name='LSTM'))
+        model.add(LSTM(units3, activation='tanh', name='LSTM'))
         model.add(Dense(1, activation='sigmoid', name='Dense'))
         opt = keras.optimizers.Adam(learning_rate=_learningRate) # 0.0001
         model.compile(loss='mean_squared_error',
@@ -137,15 +144,18 @@ class lstm_sintec(object):
         plt.show()
         
 
-    def main(self):
+    def main(self, units1=20, units2=20, units3=35, _learningRate=.001):
         # patient = '3400715.csv'
         xtrain_reshape, xtest_reshape,ytrain_dbp, ytrain_sbp, ytest_dbp, ytest_sbp = self.data_prepare()
+        
         # Make Model
-        model = self.get_model(units =20,_learningRate=.0001)  # n_timesteps, n_features)
+        _, n_features,_ = xtrain_reshape.shape
+        print(f"Number of features after PCA: {xtrain_reshape.shape[1]}")
+        model = self.get_model(n_features, units1,units2,units3,_learningRate)
         # model.summary()
 
         history = model.fit(xtrain_reshape, ytrain_dbp,
-                            epochs=75, validation_split=0.2, verbose=1)
+                            epochs=75, validation_split=0.2, verbose=0)
         # make predictions
         trainPredict = model.predict(xtrain_reshape)
         testPredict = model.predict(xtest_reshape)
@@ -166,10 +176,17 @@ class lstm_sintec(object):
 
     def run_gridsearch(self):
         xtrain_reshape, xtest_reshape,ytrain_dbp, ytrain_sbp, ytest_dbp, ytest_sbp = self.data_prepare()
+        _, n_features,_ = xtrain_reshape.shape
 
+        print(f"Number of features after PCA: {n_features}")        
         model = KerasRegressor(build_fn=self.get_model, epochs=70, batch_size=32, verbose=0)
 
-        param_grid = {'units': [16, 32, 64, 128], '_learningRate':[0.1, 0.001, .0001, .00001]}
+        param_grid = {'n_features':[n_features],
+                      'units1': [32, 64, 128],
+                      'units2': [32, 64, 128],
+                      'units3': [32, 64, 128],
+                      '_learningRate':[0.001, 0.0001]}
+        
         grid = GridSearchCV(estimator=model, param_grid=param_grid, n_jobs=-1)
         grid_result = grid.fit(xtrain_reshape, ytrain_dbp)
         grid_result = grid.fit(xtrain_reshape, ytrain_dbp)
@@ -179,9 +196,10 @@ class lstm_sintec(object):
 
 if __name__ == '__main__':
     patient = '3402408'  # 'alldataset' '3400715'   '3402291'   '3402408' 3604404
-    from PreProcess_Sintec import PreProcess_Sintec
-    PrePS = PreProcess_Sintec(patient=patient)
-    PrePS.main()
+    # from PreProcess_Sintec import PreProcess_Sintec
+    # PrePS = PreProcess_Sintec(patient=patient)
+    # PrePS.main()
 
     ls = lstm_sintec(patient=patient)
-    history = ls.run_gridsearch()
+    history = ls.main(units1=5, units2=5, units3=64, _learningRate=.001)
+    # ls.run_gridsearch()
