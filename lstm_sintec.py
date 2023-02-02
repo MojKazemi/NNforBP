@@ -182,10 +182,10 @@ class lstm_sintec(object):
         model = KerasRegressor(build_fn=self.get_model, epochs=70, batch_size=32, verbose=0)
 
         param_grid = {'n_features':[n_features],
-                      'units1': [32, 64, 128],
-                      'units2': [32, 64, 128],
-                      'units3': [32, 64, 128],
-                      '_learningRate':[0.001, 0.0001]}
+                      'units1': [32 ],
+                      'units2': [32, 128],
+                      'units3': [32, 128],
+                      '_learningRate':[0.001]}
         
         grid = GridSearchCV(estimator=model, param_grid=param_grid, n_jobs=-1)
         grid_result = grid.fit(xtrain_reshape, ytrain_dbp)
@@ -201,5 +201,5 @@ if __name__ == '__main__':
     # PrePS.main()
 
     ls = lstm_sintec(patient=patient)
-    history = ls.main(units1=5, units2=5, units3=64, _learningRate=.001)
-    # ls.run_gridsearch()
+    # history = ls.main(units1=5, units2=5, units3=64, _learningRate=.001)
+    ls.run_gridsearch()
