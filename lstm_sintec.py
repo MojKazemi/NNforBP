@@ -122,10 +122,14 @@ class lstm_sintec(object):
         # plt.legend(['train', 'validation'], loc='upper left')
         # plt.show()
     
-    def plot_pred(self,trainPredict,testPredict):
+    def plot_pred(self,trainPredict,testPredict, SelectSBP=True):
 
         # shift train predictions for plotting
-        df = self.df['DBP']
+        if SelectSBP:
+            df = self.df['SBP']
+        else:
+            df = self.df['DBP']
+
         df.reset_index(drop=True, inplace=True)
         trainPredictPlot = np.empty_like(df)
         trainPredictPlot[:] = np.nan
@@ -170,6 +174,8 @@ class lstm_sintec(object):
             print( 'Train Score: %.2f RMSE' % (trainScore))
             testScore = math.sqrt(mean_squared_error(ytest_sbp, testPredict[:,0]))
             print( 'Test Score: %.2f RMSE' % (testScore))
+            self.history_plot(history)
+            self.plot_pred(trainPredict,testPredict, SelectSBP)
 
         else:
             history = model.fit(xtrain_reshape, 
@@ -188,9 +194,9 @@ class lstm_sintec(object):
             print( 'Train Score: %.2f RMSE' % (trainScore))
             testScore = math.sqrt(mean_squared_error(ytest_dbp, testPredict[:,0]))
             print( 'Test Score: %.2f RMSE' % (testScore))
-            
-        self.history_plot(history)
-        self.plot_pred(trainPredict,testPredict)
+
+            self.history_plot(history)
+            self.plot_pred(trainPredict,testPredict, SelectSBP)
 
         return history
 
