@@ -144,7 +144,7 @@ class lstm_sintec(object):
         plt.show()
         
 
-    def main(self, units1=20, units2=20, units3=35, _learningRate=.001):
+    def main(self, units1=20, units2=20, units3=35, _learningRate=.001, SelectSBP=True):
         # patient = '3400715.csv'
         xtrain_reshape, xtest_reshape,ytrain_dbp, ytrain_sbp, ytest_dbp, ytest_sbp = self.data_prepare()
         
@@ -154,21 +154,40 @@ class lstm_sintec(object):
         model = self.get_model(n_features, units1,units2,units3,_learningRate)
         # model.summary()
 
-        history = model.fit(xtrain_reshape, ytrain_dbp,
-                            epochs=75, validation_split=0.2, verbose=0)
-        # make predictions
-        trainPredict = model.predict(xtrain_reshape)
-        testPredict = model.predict(xtest_reshape)
+        if SelectSBP:
+            history = model.fit(xtrain_reshape, 
+                                ytrain_sbp,
+                                epochs=70, 
+                                validation_split=0.2, 
+                                verbose=0)
+          # make predictions
+          trainPredict = model.predict(xtrain_reshape)
+          testPredict = model.predict(xtest_reshape)
+          trainPredict = trainPredict * self.ssy_sbp + self.mmy_sbp
+          trainY = ytrain_sbp *self.ssy_sbp + self.mmy_sbp
+          testPredict = testPredict * self.ssy_sbp + self.mmy_sbp
+          trainScore = math.sqrt(mean_squared_error(trainY, trainPredict[:,0]))
+          print( 'Train Score: %.2f RMSE' % (trainScore))
+          testScore = math.sqrt(mean_squared_error(ytest_sbp, testPredict[:,0]))
+          print( 'Test Score: %.2f RMSE' % (testScore))
 
-        trainPredict = trainPredict * self.ssy_dbp + self.mmy_dbp
-        trainY = ytrain_dbp *self.ssy_dbp + self.mmy_dbp
-        testPredict = testPredict * self.ssy_dbp + self.mmy_dbp
-        # testY = ytrain_dbp *self.ssy_dbp + self.mmy_dbp
-
-        trainScore = math.sqrt(mean_squared_error(trainY, trainPredict[:,0]))
-        print( 'Train Score: %.2f RMSE' % (trainScore))
-        testScore = math.sqrt(mean_squared_error(ytest_dbp, testPredict[:,0]))
-        print( 'Test Score: %.2f RMSE' % (testScore))
+        else:
+          history = model.fit(xtrain_reshape, 
+                              ytrain_dbp,
+                              epochs=70, 
+                              validation_split=0.2, 
+                              verbose=0)
+          # make predictions
+          trainPredict = model.predict(xtrain_reshape)
+          testPredict = model.predict(xtest_reshape)
+          trainPredict = trainPredict * self.ssy_dbp + self.mmy_dbp
+          trainY = ytrain_dbp *self.ssy_dbp + self.mmy_dbp
+          testPredict = testPredict * self.ssy_dbp + self.mmy_dbp
+        
+          trainScore = math.sqrt(mean_squared_error(trainY, trainPredict[:,0]))
+          print( 'Train Score: %.2f RMSE' % (trainScore))
+          testScore = math.sqrt(mean_squared_error(ytest_dbp, testPredict[:,0]))
+          print( 'Test Score: %.2f RMSE' % (testScore))
         self.history_plot(history)
         self.plot_pred(trainPredict,testPredict)
 
