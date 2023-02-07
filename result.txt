@@ -1,0 +1,445 @@
+3604404
+len SPs new: 76--- len Trs: 75
+HR_len 7463
+17
+3800183
+len SPs new: 78--- len Trs: 74
+HR_len 7467
+16
+3400715
+len SPs new: 97--- len Trs: 95
+/home/moj/venvM/lib/python3.8/site-packages/numpy/core/_methods.py:261: RuntimeWarning: Degrees of freedom <= 0 for slice
+  ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/moj/venvM/lib/python3.8/site-packages/numpy/core/_methods.py:221: RuntimeWarning: invalid value encountered in true_divide
+  arrmean = um.true_divide(arrmean, div, out=arrmean, casting='unsafe',
+/home/moj/venvM/lib/python3.8/site-packages/numpy/core/_methods.py:253: RuntimeWarning: invalid value encountered in double_scalars
+  ret = ret.dtype.type(ret / rcount)
+HR_len 7491
+1
+3402291
+len SPs new: 74--- len Trs: 75
+HR_len 7110
+1
+3402408
+len SPs new: 72--- len Trs: 71
+/home/moj/venvM/lib/python3.8/site-packages/numpy/core/_methods.py:261: RuntimeWarning: Degrees of freedom <= 0 for slice
+  ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/moj/venvM/lib/python3.8/site-packages/numpy/core/_methods.py:221: RuntimeWarning: invalid value encountered in true_divide
+  arrmean = um.true_divide(arrmean, div, out=arrmean, casting='unsafe',
+/home/moj/venvM/lib/python3.8/site-packages/numpy/core/_methods.py:253: RuntimeWarning: invalid value encountered in double_scalars
+  ret = ret.dtype.type(ret / rcount)
+HR_len 7448
+42
+3403213
+len SPs new: 149--- len Trs: 24
+HR_len 7468
+1
+3403232
+len SPs new: 39--- len Trs: 39
+HR_len 4973
+1
+3403274
+len SPs new: 82--- len Trs: 82
+HR_len 7467
+17
+3600293
+len SPs new: 67--- len Trs: 63
+HR_len 7462
+16
+3600376
+len SPs new: 53--- len Trs: 53
+HR_len 5732
+57
+3600490
+len SPs new: 99--- len Trs: 98
+HR_len 7472
+24
+3600620
+len SPs new: 111--- len Trs: 113
+HR_len 7040
+3
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+3601272
+len SPs new: 77--- len Trs: 79
+HR_len 7488
+6
+3602237
+len SPs new: 117--- len Trs: 61
+HR_len 7466
+29
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+3602521
+len SPs new: 81--- len Trs: 50
+/home/moj/venvM/lib/python3.8/site-packages/numpy/core/_methods.py:261: RuntimeWarning: Degrees of freedom <= 0 for slice
+  ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/moj/venvM/lib/python3.8/site-packages/numpy/core/_methods.py:221: RuntimeWarning: invalid value encountered in true_divide
+  arrmean = um.true_divide(arrmean, div, out=arrmean, casting='unsafe',
+/home/moj/venvM/lib/python3.8/site-packages/numpy/core/_methods.py:253: RuntimeWarning: invalid value encountered in double_scalars
+  ret = ret.dtype.type(ret / rcount)
+HR_len 7488
+8
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+3602666
+len SPs new: 73--- len Trs: 73
+HR_len 7460
+1
+3602766
+len SPs new: 72--- len Trs: 67
+HR_len 7495
+1
+3602772
+len SPs new: 61--- len Trs: 61
+HR_len 7429
+13
+3603256
+len SPs new: 87--- len Trs: 90
+HR_len 7130
+1
+3603658
+len SPs new: 61--- len Trs: 62
+HR_len 7446
+17
+3604217
+len SPs new: 79--- len Trs: 78
+HR_len 7481
+9
+3604352
+len SPs new: 67--- len Trs: 66
+HR_len 7440
+46
+3604430
+len SPs new: 70--- len Trs: 70
+HR_len 7484
+1
+3604660
+len SPs new: 78--- len Trs: 77
+/home/moj/venvM/lib/python3.8/site-packages/numpy/core/_methods.py:261: RuntimeWarning: Degrees of freedom <= 0 for slice
+  ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/moj/venvM/lib/python3.8/site-packages/numpy/core/_methods.py:221: RuntimeWarning: invalid value encountered in true_divide
+  arrmean = um.true_divide(arrmean, div, out=arrmean, casting='unsafe',
+/home/moj/venvM/lib/python3.8/site-packages/numpy/core/_methods.py:253: RuntimeWarning: invalid value encountered in double_scalars
+  ret = ret.dtype.type(ret / rcount)
+HR_len 7446
+33
+3605724
+len SPs new: 99--- len Trs: 92
+3605724 didn't complete
+3605744
+len SPs new: 81--- len Trs: 80
+HR_len 7477
+17
+3606358
+len SPs new: 95--- len Trs: 88
+HR_len 7456
+16
+3606882
+len SPs new: 81--- len Trs: 84
+HR_len 7446
+45
+3606901
+len SPs new: 81--- len Trs: 83
+/home/moj/venvM/lib/python3.8/site-packages/numpy/core/_methods.py:261: RuntimeWarning: Degrees of freedom <= 0 for slice
+  ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/moj/venvM/lib/python3.8/site-packages/numpy/core/_methods.py:221: RuntimeWarning: invalid value encountered in true_divide
+  arrmean = um.true_divide(arrmean, div, out=arrmean, casting='unsafe',
+/home/moj/venvM/lib/python3.8/site-packages/numpy/core/_methods.py:253: RuntimeWarning: invalid value encountered in double_scalars
+  ret = ret.dtype.type(ret / rcount)
+HR_len 7259
+27
+3606909
+len SPs new: 78--- len Trs: 78
+HR_len 7471
+16
+3607077
+len SPs new: 86--- len Trs: 88
+HR_len 7483
+1
+3607464
+len SPs new: 106--- len Trs: 105
+/home/moj/venvM/lib/python3.8/site-packages/numpy/core/_methods.py:261: RuntimeWarning: Degrees of freedom <= 0 for slice
+  ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/moj/venvM/lib/python3.8/site-packages/numpy/core/_methods.py:221: RuntimeWarning: invalid value encountered in true_divide
+  arrmean = um.true_divide(arrmean, div, out=arrmean, casting='unsafe',
+/home/moj/venvM/lib/python3.8/site-packages/numpy/core/_methods.py:253: RuntimeWarning: invalid value encountered in double_scalars
+  ret = ret.dtype.type(ret / rcount)
+HR_len 7446
+23
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+3607634
+len SPs new: 76--- len Trs: 77
+3607634 didn't complete
+3607711
+len SPs new: 73--- len Trs: 72
+HR_len 7461
+18
+3608436
+len SPs new: 88--- len Trs: 87
+3608436 didn't complete
+3608706
+len SPs new: 69--- len Trs: 68
+HR_len 7495
+1
+3609155
+len SPs new: 79--- len Trs: 77
+HR_len 7468
+1
+3609182
+len SPs new: 114--- len Trs: 113
+HR_len 7480
+11
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+3609463
+len SPs new: 84--- len Trs: 84
+/home/moj/venvM/lib/python3.8/site-packages/numpy/core/_methods.py:261: RuntimeWarning: Degrees of freedom <= 0 for slice
+  ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/moj/venvM/lib/python3.8/site-packages/numpy/core/_methods.py:221: RuntimeWarning: invalid value encountered in true_divide
+  arrmean = um.true_divide(arrmean, div, out=arrmean, casting='unsafe',
+/home/moj/venvM/lib/python3.8/site-packages/numpy/core/_methods.py:253: RuntimeWarning: invalid value encountered in double_scalars
+  ret = ret.dtype.type(ret / rcount)
+HR_len 7488
+1
+3609839
+len SPs new: 118--- len Trs: 119
+HR_len 7495
+1
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+3609868
+len SPs new: 62--- len Trs: 63
+HR_len 7486
+1
+3800350
+len SPs new: 72--- len Trs: 73
+HR_len 7461
+32
+3900487
+len SPs new: 102--- len Trs: 101
+HR_len 7483
+5
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+3901160
+len SPs new: 77--- len Trs: 76
+HR_len 7421
+49
+3901339
+len SPs new: 79--- len Trs: 79
+HR_len 7486
+1
+3901654
+len SPs new: 76--- len Trs: 77
+HR_len 7433
+39
+3902124
+len SPs new: 114--- len Trs: 112
+HR_len 7490
+1
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+3902445
+len SPs new: 91--- len Trs: 85
+HR_len 7465
+1
+3902729
+len SPs new: 68--- len Trs: 67
+HR_len 7489
+1
+3902894
+len SPs new: 71--- len Trs: 72
+HR_len 5646
+49
+3902994
+len SPs new: 67--- len Trs: 68
+HR_len 7478
+1
+3903282
+len SPs new: 76--- len Trs: 75
+HR_len 7065
+35
+3904246
+len SPs new: 105--- len Trs: 104
+HR_len 7460
+29
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+/media/moj/Entertainment/Dropbox/ICT Thesis/Sintec_project-main/PreProcess_Sintec.py:244: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  df_output[row] = df.loc[_list1[index]:row].median()
+3904308
+len SPs new: 87--- len Trs: 86
+/home/moj/venvM/lib/python3.8/site-packages/numpy/core/_methods.py:261: RuntimeWarning: Degrees of freedom <= 0 for slice
+  ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/moj/venvM/lib/python3.8/site-packages/numpy/core/_methods.py:221: RuntimeWarning: invalid value encountered in true_divide
+  arrmean = um.true_divide(arrmean, div, out=arrmean, casting='unsafe',
+/home/moj/venvM/lib/python3.8/site-packages/numpy/core/_methods.py:253: RuntimeWarning: invalid value encountered in double_scalars
+  ret = ret.dtype.type(ret / rcount)
+HR_len 7461
+1
+3904396
+len SPs new: 105--- len Trs: 93
+/home/moj/venvM/lib/python3.8/site-packages/numpy/core/_methods.py:261: RuntimeWarning: Degrees of freedom <= 0 for slice
+  ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/moj/venvM/lib/python3.8/site-packages/numpy/core/_methods.py:221: RuntimeWarning: invalid value encountered in true_divide
+  arrmean = um.true_divide(arrmean, div, out=arrmean, casting='unsafe',
+/home/moj/venvM/lib/python3.8/site-packages/numpy/core/_methods.py:253: RuntimeWarning: invalid value encountered in double_scalars
+  ret = ret.dtype.type(ret / rcount)
+HR_len 7454
+1
+3904550
+len SPs new: 89--- len Trs: 79
+HR_len 7437
+27
+3905695
+len SPs new: 63--- len Trs: 63
+HR_len 7466
+1
+3905772
+len SPs new: 65--- len Trs: 65
+HR_len 7476
+13
+3907039
+len SPs new: 78--- len Trs: 78
+HR_len 7486
+8
