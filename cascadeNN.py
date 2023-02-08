@@ -165,7 +165,7 @@ def run_gridsearch(self,xtrain_reshape,ytrain, param_grid):
 
   kfold = KFold(n_splits=5, shuffle=True)
 
-  grid = GridSearchCV(estimator=model, param_grid=param_grid, n_jobs=-1,
+  grid = GridSearchCV(estimator=model, param_grid=param_grid,# n_jobs=-1,
                       cv=kfold, verbose=1,
                       return_train_score=True)
   
@@ -223,11 +223,15 @@ y_scaled = (y-mmy)/ssy
 # Divide the data into train, validation, and test sets
 X_train, X_test, y_train, y_test = train_test_split(X_scaled, y_scaled, test_size=0.10, random_state=42)
 X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.15, random_state=42)
-print(f"shape of y train:{y_train.shape}")
+# print(f"shape of y train:{y_train.shape}")
 
 X_train_reshape = np.reshape(X_train, (X_train.shape[0], X_train.shape[1], 1))
 X_test_reshape = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
 X_val_reshape = np.reshape(X_val, (X_val.shape[0], X_val.shape[1], 1))
+
+# Grid search
+param_grid = {}
+run_gridsearch(X_train_reshape,y_train, param_grid)
 
 # Train the model
 model = training(X_train_reshape,X_val_reshape,y_train,y_val)
@@ -238,7 +242,6 @@ y_hat = model.predict([X_scaled[:, 0,:], X_scaled[:, 1,:]])
 y_hat = y_hat * ssy + mmy
 y = y_scaled * ssy + mmy
 
-print(y.shape,y_hat.shape)
-# y_hat = np.reshape(y_hat,(y_hat.shape[0],y_hat.shape[2]))
-plot_all(y,y_hat)
+plot_all(y, y_hat)
+
 
