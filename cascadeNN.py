@@ -23,41 +23,41 @@ def get_model():
     input1 = Input(shape=(1,1))
 
     # Define the first branch of the HR signal
-    conv1_1 = Conv1D(filters=32, kernel_size=1,input_shape=(1, 1), activation='relu')(input1)
+    conv1_1 = Conv1D(filters=64, kernel_size=1,input_shape=(1, 1), activation='relu')(input1)
     
     print("------////-------Output size of layer:", conv1_1.shape)
 
     pool1_1 = MaxPooling1D(pool_size=1)(conv1_1)
     print("------////-------Output size of layer:", pool1_1.shape)
 
-    conv1_2 = Conv1D(filters=32, kernel_size=1, activation='relu')(input1)
+    conv1_2 = Conv1D(filters=64, kernel_size=1, activation='relu')(input1)
     pool1_2 = MaxPooling1D(pool_size=1)(conv1_2)
 
     concat1 = Concatenate()([pool1_1, pool1_2])
 
-    conv1_3 = Conv1D(filters=32, kernel_size=1, activation='relu')(concat1)
+    conv1_3 = Conv1D(filters=64, kernel_size=1, activation='relu')(concat1)
     pool1_3 = MaxPooling1D(pool_size=1)(conv1_3)
 
-    conv1_4 = Conv1D(filters=32, kernel_size=1, activation='relu')(concat1)
+    conv1_4 = Conv1D(filters=64, kernel_size=1, activation='relu')(concat1)
     pool1_4 = MaxPooling1D(pool_size=1)(conv1_4)
 
     concat2 = Concatenate()([pool1_3, pool1_4])
 
     # Define the second input layer for the PPG signal
-    input2 =Input(shape=(1,1))
+    input2 = Input(shape=(1,1))
     # Define the second branch of the PPG signal
-    conv2_1 = Conv1D(filters=32, kernel_size=1, activation='relu')(input2)
+    conv2_1 = Conv1D(filters=64, kernel_size=1, activation='relu')(input2)
     pool2_1 = MaxPooling1D(pool_size=1)(conv2_1)
 
-    conv2_2 = Conv1D(filters=32, kernel_size=1, activation='relu')(input2)
+    conv2_2 = Conv1D(filters=64, kernel_size=1, activation='relu')(input2)
     pool2_2 = MaxPooling1D(pool_size=1)(conv2_2)
 
     concat3 = Concatenate()([pool2_1, pool2_2])
 
-    conv2_3 = Conv1D(filters=32, kernel_size=1, activation='relu')(concat3)
+    conv2_3 = Conv1D(filters=64, kernel_size=1, activation='relu')(concat3)
     pool2_3 = MaxPooling1D(pool_size=1)(conv2_3)
 
-    conv2_4 = Conv1D(filters=32, kernel_size=1, activation='relu')(concat3)
+    conv2_4 = Conv1D(filters=64, kernel_size=1, activation='relu')(concat3)
     pool2_4 = MaxPooling1D(pool_size=1)(conv2_4)
 
     concat4 = Concatenate()([pool2_3, pool2_4])
@@ -66,21 +66,26 @@ def get_model():
     concat5 = Concatenate()([concat2, concat4])
 
     # Define the LSTM layer
-    lstm = LSTM(units=128, return_sequences=True)(concat5)
-    # Dense layer with 3 outputs
-    outputs = Dense(2, activation='linear')(lstm)
+    lstm = LSTM(units=128)(concat5)
+    flatten = Flatten()(concat5)
+
+    dense = Dense(units=64, activation='relu')(flatten)
+    # output = Dense(units=3, activation='softmax')(dense)
+    # Dense layer with 2 outputs
+    outputs = Dense(2, activation='linear')(dense)
 
     # Define the model
     model = keras.models.Model(inputs=[input1, input2], outputs=outputs)
 
     # Compile the model
-    opt = keras.optimizers.Adam(learning_rate=0.001)
+    opt = keras.optimizers.Adam(learning_rate=0.01)
+
     model.compile(loss='mean_squared_error', optimizer=opt)
 
     return model
 
 
-df = pd.read_csv('./Dataset/Regression/3602766.csv').set_index('Time')
+df = pd.read_csv('./Dataset/Regression/3402408.csv').set_index('Time')
 # print(df.head())
 df = df.dropna(how='all')
 x_final = np.arange(0, 60,.1)
@@ -135,7 +140,7 @@ Y = df[['DBP', 'SBP']]
 # Normaliziation
 x = X.values
 y = Y.values
-
+print(f'shape of y {y.shape}')
 mmx = x.mean(axis=0)
 ssx = x.std(axis=0)
 X_scaled = (x-mmx)/ssx
@@ -146,9 +151,9 @@ y_scaled = (y-mmy)/ssy
 
 
 # Divide the data into train, validation, and test sets
-X_train, X_test, y_train, y_test = train_test_split(X_scaled, y_scaled, test_size=0.2, random_state=42)
-X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.25, random_state=42)
-
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y_scaled, test_size=0.10, random_state=42)
+X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.15, random_state=42)
+print(f"shape of y train:{y_train.shape}")
 
 X_train_reshape = np.reshape(X_train, (X_train.shape[0], X_train.shape[1], 1))
 X_test_reshape = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
@@ -163,7 +168,7 @@ model = get_model()
 checkpoint = ModelCheckpoint("./best_model.h5", monitor='val_loss', save_best_only=True, mode='min')
 
 history = model.fit([X_train_reshape[:, 0,:], X_train_reshape[:, 1,:]],
-                    y_train, batch_size = 32,
+                    y_train, #batch_size = 32,
                     validation_data=([X_val_reshape[:, 0,:],X_val_reshape[:, 1,:]], y_val),
                     epochs=100)
 
@@ -178,12 +183,18 @@ history = model.fit([X_train_reshape[:, 0,:], X_train_reshape[:, 1,:]],
 trainPredict = model.predict([X_train_reshape[:, 0,:], X_train_reshape[:, 1,:]])
 validPredict = model.predict([X_val_reshape[:, 0,:], X_val_reshape[:, 1,:]])
 testPredict = model.predict([X_test_reshape[:, 0,:], X_test_reshape[:, 1,:]])
+print(f'shape of train predict{trainPredict.shape}')
 
-trainScore = math.sqrt(mean_squared_error(y_train, trainPredict[:,0]))
-testScore = math.sqrt(mean_squared_error(y_test, testPredict[:,0]))
+trainScore = math.sqrt(mean_squared_error(y_train[:,0], trainPredict[:,0]))
+testScore = math.sqrt(mean_squared_error(y_test[:,0], testPredict[:,0]))
 
-print( 'Train Score: %.2f RMSE' % (trainScore))
-print( 'Test Score: %.2f RMSE' % (testScore))
+print( 'Train Score DBP: %.2f RMSE' % (trainScore))
+print( 'Test Score DBP: %.2f RMSE' % (testScore))
+
+trainScore = math.sqrt(mean_squared_error(y_train[:,1], trainPredict[:,1]))
+testScore = math.sqrt(mean_squared_error(y_test[:,1], testPredict[:,1]))
+print( 'Train Score SBP: %.2f RMSE' % (trainScore))
+print( 'Test Score SBP: %.2f RMSE' % (testScore))
 
 plt.figure()
 print(history.history.keys())
@@ -199,8 +210,11 @@ plt.show()
 X_scaled = np.reshape(X_scaled, (X_scaled.shape[0], X_scaled.shape[1], 1))
 y_hat = model.predict([X_scaled[:, 0,:], X_scaled[:, 1,:]])
 
-y_hat = y_hat * ssy+mmy
-y = y_scaled * ssy+mmy
+y_hat = y_hat * ssy + mmy
+y = y_scaled * ssy + mmy
+
+print(y.shape,y_hat.shape)
+# y_hat = np.reshape(y_hat,(y_hat.shape[0],y_hat.shape[2]))
 
 for i in range(2):
   if i==0:
@@ -232,37 +246,3 @@ for i in range(2):
   plt.title(f"Histogram of Error ({_title})")
   plt.show()
 
-
-
-
-'''
-    predicty = np.reshape(predicty,(predicty.shape[0],predicty.shape[2]))
-
-    # scaler.fit(y)
-    denormalized_predictions = scaler.inverse_transform(predicty)
-    y_np=y.values
-
-    print(y_scaled.shape,predicty.shape)
-    print(denormalized_predictions)
-    plt.scatter(y_np[:,0], denormalized_predictions[:,0])
-    # Plot the linear line
-    z = np.polyfit(y_np[:,0], denormalized_predictions[:,0], 1)
-    p = np.poly1d(z)
-    plt.plot(y_np[:,0], p(y_np[:,0]),"g--")
-    plt.xlabel("Real Values")
-    plt.ylabel("predicty")
-    plt.show()
-
-    plt.scatter(y_np[:,1], denormalized_predictions[:,1])
-    coefficients = np.polyfit(y_np[:,1], denormalized_predictions[:,1], 1)
-    plt.plot(y_np[:,1], coefficients[0] * y_np[:,1] + coefficients[1], '-r')
-    plt.xlabel("Real Values")
-    plt.ylabel("predicty")
-    plt.show()
-
-
-    plt.figure()
-    plt.plot(y_np[:,0],c='r')
-    plt.plot( denormalized_predictions[:,0], c='b')
-    plt.show()
-'''
