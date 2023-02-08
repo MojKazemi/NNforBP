@@ -7,6 +7,10 @@ import math
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 from keras.callbacks import ModelCheckpoint
 import seaborn as sns
+from keras.wrappers.scikit_learn import KerasRegressor
+from sklearn.model_selection import KFold
+from sklearn.model_selection import GridSearchCV
+
 
 # df = pd.read_csv('./Dataset/puredataset/CascadeNN/alldataset.csv')
 # counthr = df['HR'].count()
@@ -84,6 +88,90 @@ def get_model():
 
     return model
 
+def plot_all(y,y_hat):
+  for i in range(2):
+    if i==0:
+      _title = 'DBP'
+    else:
+      _title = 'SBP'
+
+    # plot Desired values and Predict values
+    plt.figure()
+    plt.plot(y_hat[:,i],c='r')
+    plt.plot(y[:,i],c='b')
+    plt.show()
+
+    # plot regression plot 
+    plt.figure()
+    sns.regplot(x=y[:,i],y=y_hat[:,i], scatter_kws={'s': 2})
+    plt.xlabel("True Values")
+    plt.ylabel("Predicted Values")
+    plt.title(f"Regression Plot of True Values vs. Predicted Values({_title})")
+    plt.show()
+
+    # Plot error histogram
+    error = y [:,i]- y_hat[:,i]
+
+    plt.hist(error, bins=20, rwidth=0.8)
+    plt.xlabel("Error(mmHg)")
+    plt.ylabel("Frequency")
+
+    plt.title(f"Histogram of Error ({_title})")
+    plt.show()
+
+def training(X_train_reshape, X_val_reshape,y_train,y_val):
+  # num_features = 2
+
+  model = get_model()
+
+  checkpoint = ModelCheckpoint("./best_model.h5", monitor='val_loss', save_best_only=True, mode='min')
+
+  history = model.fit([X_train_reshape[:, 0,:], X_train_reshape[:, 1,:]],
+                      y_train, #batch_size = 32,
+                      validation_data=([X_val_reshape[:, 0,:],X_val_reshape[:, 1,:]], y_val),
+                      epochs=100)
+
+  trainPredict = model.predict([X_train_reshape[:, 0,:], X_train_reshape[:, 1,:]])
+  validPredict = model.predict([X_val_reshape[:, 0,:], X_val_reshape[:, 1,:]])
+  testPredict = model.predict([X_test_reshape[:, 0,:], X_test_reshape[:, 1,:]])
+  print(f'shape of train predict{trainPredict.shape}')
+
+  trainScore = math.sqrt(mean_squared_error(y_train[:,0], trainPredict[:,0]))
+  testScore = math.sqrt(mean_squared_error(y_test[:,0], testPredict[:,0]))
+
+  print( 'Train Score DBP: %.2f RMSE' % (trainScore))
+  print( 'Test Score DBP: %.2f RMSE' % (testScore))
+
+  trainScore = math.sqrt(mean_squared_error(y_train[:,1], trainPredict[:,1]))
+  testScore = math.sqrt(mean_squared_error(y_test[:,1], testPredict[:,1]))
+  print( 'Train Score SBP: %.2f RMSE' % (trainScore))
+  print( 'Test Score SBP: %.2f RMSE' % (testScore))
+
+  plt.figure()
+  print(history.history.keys())
+  plt.plot(history.history['loss'])
+  plt.plot(history.history['val_loss'])
+  plt.title('model loss')
+  plt.ylabel('loss')
+  plt.xlabel('epoch')
+  plt.legend(['train','Val'], loc='upper left')
+  # plt.savefig(f'./Plots/LSTM/{patient}_loss.png')
+  plt.show()
+  return model
+
+def run_gridsearch(self,xtrain_reshape,ytrain, param_grid):
+
+  model = KerasRegressor(build_fn=self.get_model, epochs=70, batch_size=32, verbose=0)
+
+  kfold = KFold(n_splits=5, shuffle=True)
+
+  grid = GridSearchCV(estimator=model, param_grid=param_grid, n_jobs=-1,
+                      cv=kfold, verbose=1,
+                      return_train_score=True)
+  
+  grid_result = grid.fit(xtrain_reshape, ytrain)
+  print(f"best_estimator_: {grid_result.best_estimator_}")
+  print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
 
 df = pd.read_csv('./Dataset/Regression/3402408.csv').set_index('Time')
 # print(df.head())
@@ -112,9 +200,6 @@ plt.tight_layout()
 plt.close()
 
 df = df.loc[x_final].dropna()
-# print(df.head())
-# df.to_csv('./mmmmm.csv')
-# print(df.shape)
 
 TRAIN_PERC = 0.85
 train_size = int(TRAIN_PERC*len(df.index))
@@ -122,20 +207,6 @@ train_size = int(TRAIN_PERC*len(df.index))
 # separate the input features (HR, PPG) from the target variables (DBP, SBP)
 X = df[['HR', 'PTT']]
 Y = df[['DBP', 'SBP']]
-
-# # Normalize the input features
-# scaler = MinMaxScaler()
-# X_scaled = scaler.fit_transform(X)
-# # X_scaled = X.values
-
-# # print(f"min{X_scaled[0].min}and max: {X_scaled[0].max}")
-# # print(X_scaled)
-# # breakpoint()
-# # Normalize the target variables
-# # print(type(y))
-# y_scaled = scaler.fit_transform(y)
-# # y_scaled =y.values
-# # print(type(y_scaled))
 
 # Normaliziation
 x = X.values
@@ -149,7 +220,6 @@ mmy = y.mean(axis=0)
 ssy = y.std(axis=0)
 y_scaled = (y-mmy)/ssy
 
-
 # Divide the data into train, validation, and test sets
 X_train, X_test, y_train, y_test = train_test_split(X_scaled, y_scaled, test_size=0.10, random_state=42)
 X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.15, random_state=42)
@@ -159,53 +229,8 @@ X_train_reshape = np.reshape(X_train, (X_train.shape[0], X_train.shape[1], 1))
 X_test_reshape = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
 X_val_reshape = np.reshape(X_val, (X_val.shape[0], X_val.shape[1], 1))
 
-timesteps = df.shape[0]
-num_features = 2
-
-model = get_model()
 # Train the model
-
-checkpoint = ModelCheckpoint("./best_model.h5", monitor='val_loss', save_best_only=True, mode='min')
-
-history = model.fit([X_train_reshape[:, 0,:], X_train_reshape[:, 1,:]],
-                    y_train, #batch_size = 32,
-                    validation_data=([X_val_reshape[:, 0,:],X_val_reshape[:, 1,:]], y_val),
-                    epochs=100)
-
-# Evaluate the model on the test data
-# loss, accuracy = model.evaluate([X_test_reshape[:, 0,:], X_test_reshape[:, 1,:]], y_test, verbose=0)
-
-# # Print the loss and accuracy of the model on the test data
-# print("Loss:", loss)
-# print("Accuracy:", accuracy)
-
-# make predictions
-trainPredict = model.predict([X_train_reshape[:, 0,:], X_train_reshape[:, 1,:]])
-validPredict = model.predict([X_val_reshape[:, 0,:], X_val_reshape[:, 1,:]])
-testPredict = model.predict([X_test_reshape[:, 0,:], X_test_reshape[:, 1,:]])
-print(f'shape of train predict{trainPredict.shape}')
-
-trainScore = math.sqrt(mean_squared_error(y_train[:,0], trainPredict[:,0]))
-testScore = math.sqrt(mean_squared_error(y_test[:,0], testPredict[:,0]))
-
-print( 'Train Score DBP: %.2f RMSE' % (trainScore))
-print( 'Test Score DBP: %.2f RMSE' % (testScore))
-
-trainScore = math.sqrt(mean_squared_error(y_train[:,1], trainPredict[:,1]))
-testScore = math.sqrt(mean_squared_error(y_test[:,1], testPredict[:,1]))
-print( 'Train Score SBP: %.2f RMSE' % (trainScore))
-print( 'Test Score SBP: %.2f RMSE' % (testScore))
-
-plt.figure()
-print(history.history.keys())
-plt.plot(history.history['loss'])
-plt.plot(history.history['val_loss'])
-plt.title('model loss')
-plt.ylabel('loss')
-plt.xlabel('epoch')
-plt.legend(['train','Val'], loc='upper left')
-# plt.savefig(f'./Plots/LSTM/{patient}_loss.png')
-plt.show()
+model = training(X_train_reshape,X_val_reshape,y_train,y_val)
 
 X_scaled = np.reshape(X_scaled, (X_scaled.shape[0], X_scaled.shape[1], 1))
 y_hat = model.predict([X_scaled[:, 0,:], X_scaled[:, 1,:]])
@@ -215,34 +240,5 @@ y = y_scaled * ssy + mmy
 
 print(y.shape,y_hat.shape)
 # y_hat = np.reshape(y_hat,(y_hat.shape[0],y_hat.shape[2]))
-
-for i in range(2):
-  if i==0:
-    _title = 'DBP'
-  else:
-    _title = 'SBP'
-
-  # plot Desired values and Predict values
-  plt.figure()
-  plt.plot(y_hat[:,i],c='r')
-  plt.plot(y[:,i],c='b')
-  plt.show()
-
-  # plot regression plot 
-  plt.figure()
-  sns.regplot(x=y[:,i],y=y_hat[:,i], scatter_kws={'s': 2})
-  plt.xlabel("True Values")
-  plt.ylabel("Predicted Values")
-  plt.title(f"Regression Plot of True Values vs. Predicted Values({_title})")
-  plt.show()
-
-  # Plot error histogram
-  error = y [:,i]- y_hat[:,i]
-
-  plt.hist(error, bins=20, rwidth=0.8)
-  plt.xlabel("Error(mmHg)")
-  plt.ylabel("Frequency")
-
-  plt.title(f"Histogram of Error ({_title})")
-  plt.show()
+plot_all(y,y_hat)
 
