@@ -10,7 +10,10 @@ import seaborn as sns
 from keras.wrappers.scikit_learn import KerasRegressor
 from sklearn.model_selection import KFold
 from sklearn.model_selection import GridSearchCV
-
+import keras
+from keras.layers import Input, LSTM, Conv1D, MaxPooling1D, Flatten, Dense, Concatenate, Lambda
+from keras.models import Model
+import tensorflow as tf
 
 # df = pd.read_csv('./Dataset/puredataset/CascadeNN/alldataset.csv')
 # counthr = df['HR'].count()
@@ -18,50 +21,47 @@ from sklearn.model_selection import GridSearchCV
 # countsbp = df['SBP'].count()
 # print(f'number of hr:{counthr}, DBP:{countdbp},SBP: {countsbp}')
 
-def get_model():
-    import keras
-    from keras.layers import Input, LSTM, Conv1D, MaxPooling1D, Flatten, Dense, Concatenate
-    from keras.models import Model
-    print('*************************************')
-    # Define the first input layer for the HR signal
-    input1 = Input(shape=(1,1))
+def get_model(u_conv1_1=64,u_conv2_1=64,u_LSTM = 128):
+
+    print(f'Make Model with units of Conv1-1:{u_conv1_1} -Conv2-1:{u_conv2_1} - LSTM : {u_LSTM}')
+
+    combi_input = Input(shape=(2,))
+    input1 = Lambda(lambda x: tf.expand_dims(x[:,0],-1))(combi_input)
+    input2 = Lambda(lambda x: tf.expand_dims(x[:,1],-1))(combi_input)
+
+    input1R = Lambda(lambda x: tf.reshape(x,[-1,1,1]))(input1)
+    input2R = Lambda(lambda x: tf.reshape(x,[-1,1,1]))(input2)
 
     # Define the first branch of the HR signal
-    conv1_1 = Conv1D(filters=64, kernel_size=1,input_shape=(1, 1), activation='relu')(input1)
-    
-    print("------////-------Output size of layer:", conv1_1.shape)
-
+    conv1_1 = Conv1D(filters=u_conv1_1, kernel_size=1,input_shape=(1, 1), activation='relu')(input1R)
     pool1_1 = MaxPooling1D(pool_size=1)(conv1_1)
-    print("------////-------Output size of layer:", pool1_1.shape)
 
-    conv1_2 = Conv1D(filters=64, kernel_size=1, activation='relu')(input1)
+    conv1_2 = Conv1D(filters=u_conv1_1, kernel_size=1, activation='relu')(input1R)
     pool1_2 = MaxPooling1D(pool_size=1)(conv1_2)
 
     concat1 = Concatenate()([pool1_1, pool1_2])
 
-    conv1_3 = Conv1D(filters=64, kernel_size=1, activation='relu')(concat1)
+    conv1_3 = Conv1D(filters=u_conv2_1, kernel_size=1, activation='relu')(concat1)
     pool1_3 = MaxPooling1D(pool_size=1)(conv1_3)
 
-    conv1_4 = Conv1D(filters=64, kernel_size=1, activation='relu')(concat1)
+    conv1_4 = Conv1D(filters=u_conv2_1, kernel_size=1, activation='relu')(concat1)
     pool1_4 = MaxPooling1D(pool_size=1)(conv1_4)
 
     concat2 = Concatenate()([pool1_3, pool1_4])
 
-    # Define the second input layer for the PPG signal
-    input2 = Input(shape=(1,1))
     # Define the second branch of the PPG signal
-    conv2_1 = Conv1D(filters=64, kernel_size=1, activation='relu')(input2)
+    conv2_1 = Conv1D(filters=u_conv1_1, kernel_size=1, activation='relu')(input2R)
     pool2_1 = MaxPooling1D(pool_size=1)(conv2_1)
 
-    conv2_2 = Conv1D(filters=64, kernel_size=1, activation='relu')(input2)
+    conv2_2 = Conv1D(filters=u_conv1_1, kernel_size=1, activation='relu')(input2R)
     pool2_2 = MaxPooling1D(pool_size=1)(conv2_2)
 
     concat3 = Concatenate()([pool2_1, pool2_2])
 
-    conv2_3 = Conv1D(filters=64, kernel_size=1, activation='relu')(concat3)
+    conv2_3 = Conv1D(filters=u_conv2_1, kernel_size=1, activation='relu')(concat3)
     pool2_3 = MaxPooling1D(pool_size=1)(conv2_3)
 
-    conv2_4 = Conv1D(filters=64, kernel_size=1, activation='relu')(concat3)
+    conv2_4 = Conv1D(filters=u_conv2_1, kernel_size=1, activation='relu')(concat3)
     pool2_4 = MaxPooling1D(pool_size=1)(conv2_4)
 
     concat4 = Concatenate()([pool2_3, pool2_4])
@@ -70,16 +70,15 @@ def get_model():
     concat5 = Concatenate()([concat2, concat4])
 
     # Define the LSTM layer
-    lstm = LSTM(units=128)(concat5)
-    flatten = Flatten()(concat5)
+    lstm = LSTM(units=u_LSTM)(concat5)
+    flatten = Flatten()(lstm)
 
-    dense = Dense(units=64, activation='relu')(flatten)
-    # output = Dense(units=3, activation='softmax')(dense)
+    # dense = Dense(units=64, activation='relu')(flatten)
     # Dense layer with 2 outputs
-    outputs = Dense(2, activation='linear')(dense)
+    outputs = Dense(2, activation='linear')(flatten)
 
     # Define the model
-    model = keras.models.Model(inputs=[input1, input2], outputs=outputs)
+    model = keras.models.Model(inputs=combi_input, outputs=outputs)
 
     # Compile the model
     opt = keras.optimizers.Adam(learning_rate=0.01)
@@ -119,21 +118,21 @@ def plot_all(y,y_hat):
     plt.title(f"Histogram of Error ({_title})")
     plt.show()
 
-def training(X_train_reshape, X_val_reshape,y_train,y_val):
+def training(X_train, X_val,y_train,y_val):
   # num_features = 2
 
   model = get_model()
 
   checkpoint = ModelCheckpoint("./best_model.h5", monitor='val_loss', save_best_only=True, mode='min')
 
-  history = model.fit([X_train_reshape[:, 0,:], X_train_reshape[:, 1,:]],
+  history = model.fit(X_train,
                       y_train, #batch_size = 32,
-                      validation_data=([X_val_reshape[:, 0,:],X_val_reshape[:, 1,:]], y_val),
+                      validation_data=(X_val, y_val),
                       epochs=100)
 
-  trainPredict = model.predict([X_train_reshape[:, 0,:], X_train_reshape[:, 1,:]])
-  validPredict = model.predict([X_val_reshape[:, 0,:], X_val_reshape[:, 1,:]])
-  testPredict = model.predict([X_test_reshape[:, 0,:], X_test_reshape[:, 1,:]])
+  trainPredict = model.predict(X_train)
+  validPredict = model.predict(X_val)
+  testPredict = model.predict(X_test)
   print(f'shape of train predict{trainPredict.shape}')
 
   trainScore = math.sqrt(mean_squared_error(y_train[:,0], trainPredict[:,0]))
@@ -159,9 +158,9 @@ def training(X_train_reshape, X_val_reshape,y_train,y_val):
   plt.show()
   return model
 
-def run_gridsearch(self,xtrain_reshape,ytrain, param_grid):
+def run_gridsearch(xtrain,ytrain, param_grid):
 
-  model = KerasRegressor(build_fn=self.get_model, epochs=70, batch_size=32, verbose=0)
+  model = KerasRegressor(build_fn=get_model, epochs=70, batch_size=32, verbose=0)
 
   kfold = KFold(n_splits=5, shuffle=True)
 
@@ -169,7 +168,7 @@ def run_gridsearch(self,xtrain_reshape,ytrain, param_grid):
                       cv=kfold, verbose=1,
                       return_train_score=True)
   
-  grid_result = grid.fit(xtrain_reshape, ytrain)
+  grid_result = grid.fit(xtrain, ytrain)
   print(f"best_estimator_: {grid_result.best_estimator_}")
   print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
 
@@ -225,23 +224,22 @@ X_train, X_test, y_train, y_test = train_test_split(X_scaled, y_scaled, test_siz
 X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.15, random_state=42)
 # print(f"shape of y train:{y_train.shape}")
 
-X_train_reshape = np.reshape(X_train, (X_train.shape[0], X_train.shape[1], 1))
-X_test_reshape = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
-X_val_reshape = np.reshape(X_val, (X_val.shape[0], X_val.shape[1], 1))
-
 # Grid search
-param_grid = {}
-run_gridsearch(X_train_reshape,y_train, param_grid)
+param_grid = {
+  'u_conv1_1':[64, 128],
+  'u_conv2_1':[64, 128],
+  'u_LSTM':[64, 128]
+}
+run_gridsearch(X_train,y_train, param_grid)
 
 # Train the model
-model = training(X_train_reshape,X_val_reshape,y_train,y_val)
+# model = training(X_train,X_val,y_train,y_val)
 
-X_scaled = np.reshape(X_scaled, (X_scaled.shape[0], X_scaled.shape[1], 1))
-y_hat = model.predict([X_scaled[:, 0,:], X_scaled[:, 1,:]])
+# y_hat = model.predict(X_scaled)
 
-y_hat = y_hat * ssy + mmy
-y = y_scaled * ssy + mmy
+# y_hat = y_hat * ssy + mmy
+# y = y_scaled * ssy + mmy
 
-plot_all(y, y_hat)
+# plot_all(y, y_hat)
 
 
