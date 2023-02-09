@@ -21,7 +21,7 @@ import tensorflow as tf
 # countsbp = df['SBP'].count()
 # print(f'number of hr:{counthr}, DBP:{countdbp},SBP: {countsbp}')
 
-def get_model(u_conv1_1=64,u_conv2_1=64,u_LSTM = 128):
+def get_model(u_conv1_1=128,u_conv2_1=64,u_LSTM = 64):
 
     print(f'Make Model with units of Conv1-1:{u_conv1_1} -Conv2-1:{u_conv2_1} - LSTM : {u_LSTM}')
 
@@ -128,7 +128,7 @@ def training(X_train, X_val,y_train,y_val):
   history = model.fit(X_train,
                       y_train, #batch_size = 32,
                       validation_data=(X_val, y_val),
-                      epochs=100)
+                      epochs=500)
 
   trainPredict = model.predict(X_train)
   validPredict = model.predict(X_val)
@@ -226,20 +226,28 @@ X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.
 
 # Grid search
 param_grid = {
+  'u_conv1_1':[32,64,128],
+  'u_conv2_1':[32, 64, 128],
+  'u_LSTM':[32, 64, 128]
+}
+# run_gridsearch(X_train,y_train, param_grid)
+
+# Train the model
+model = training(X_train,X_val,y_train,y_val)
+
+y_hat = model.predict(X_scaled)
+
+y_hat = y_hat * ssy + mmy
+y = y_scaled * ssy + mmy
+
+plot_all(y, y_hat)
+
+
+'''
+  param_grid = {
   'u_conv1_1':[64, 128],
   'u_conv2_1':[64, 128],
   'u_LSTM':[64, 128]
 }
-run_gridsearch(X_train,y_train, param_grid)
-
-# Train the model
-# model = training(X_train,X_val,y_train,y_val)
-
-# y_hat = model.predict(X_scaled)
-
-# y_hat = y_hat * ssy + mmy
-# y = y_scaled * ssy + mmy
-
-# plot_all(y, y_hat)
-
-
+  Best: -0.468258 using {'u_LSTM': 64, 'u_conv1_1': 128, 'u_conv2_1': 64}
+'''
