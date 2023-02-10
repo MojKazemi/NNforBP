@@ -24,7 +24,7 @@ class lstm_sintec(object):
      LSTM NN Model for Prediction the Blood Presure
     '''
     def __init__(self,patient):
-        self.TRAIN_PERC = 0.85
+        self.TRAIN_PERC = 0.95
         if not os.path.exists('./Dataset/NN_model'):
           os.mkdir(self.regr_path+'NN_model')
         self.regr_path = './Dataset/NN_model/'
@@ -43,10 +43,9 @@ class lstm_sintec(object):
         output_col = ['DBP', 'SBP']
         self.X = self.df[input_col]
         self.y = self.df[output_col]
+        self.time = self.df['Time'].values
 
     def data_prepare(self):
-        train_size = int(self.TRAIN_PERC*len(self.df.index))
-
         # Normaliziation
         x = self.X.values
         y = self.y.values
@@ -67,8 +66,8 @@ class lstm_sintec(object):
 
         # Save the PCA model
         joblib.dump(pca, self.final_model+'pca.joblib')
-        TRAIN_PERC = 0.95
-        train_size = int(TRAIN_PERC*len(X_scaled))
+
+        train_size = int(self.TRAIN_PERC*len(X_scaled))
 
         x_Sep, y_Sep = X_scaled[train_size:], y_scaled[train_size:]
         X_scaled, y_scaled = X_scaled[:train_size], y_scaled[:train_size]
@@ -80,8 +79,13 @@ class lstm_sintec(object):
         xtrain_reshape = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1))
         x_Sep_re = np.reshape(x_Sep,(x_Sep.shape[0],x_Sep.shape[1],1))
         xtest_reshape = np.reshape(x_test, (x_test.shape[0], x_test.shape[1], 1))
-
-        return xtrain_reshape, xtest_reshape, y_train, y_test, X_scaled, y_scaled, x_Sep_re, y_Sep
+        data = {
+            'Train':{'x':xtrain_reshape,'y':y_train},
+            'Test':{'x':xtest_reshape,'y':y_test},
+            'Sep':{'x':x_Sep_re,'y':y_Sep},
+            'Dataset':{'x':X_scaled,'y':y_scaled}
+        }
+        return data
 
     def get_model(self, n_features, units1=128,units2=128,units3=128,_learningRate=.01):
         def scaled_sigmoid(x):
@@ -153,37 +157,40 @@ class lstm_sintec(object):
             axs[i,1].set_title(f"Histogram of Error ({_title})")
 
             # Plot Y and Y_hat
-            axs[i,2].plot(y_hat[:,i], c='r', label = 'Y_predict')
-            axs[i,2].plot(y[:,i], c='b', label = 'Y')
+            axs[i,2].plot(self.time, y_hat[:,i], c='r', label = 'Y_predict')
+            axs[i,2].plot(self.time, y[:,i], c='b', label = 'Y')
             axs[i,2].set_ylabel('DBP[mmHg]')
+            axs[i,2].set_xlabel('Time[s]')
             axs[i,2].set_title(f'Real value of {_title} and Predict value of {_title}')
             axs[i,2].legend()
 
             # Plot vertical lines to represent the test region
-            axs[i,2].axvline(x=len(y_scaled), color='gray', linestyle='--')
-            axs[i,2].axvline(x=len(y), color='gray', linestyle='--')
+            # axs[i,2].axvline(x=len(y_scaled), color='gray', linestyle='--')
+            # axs[i,2].axvline(x=len(y), color='gray', linestyle='--')
 
             # Fill the space between the vertical lines
-            axs[i,2].fill_betweenx([min(y[:,i]),max(y[:,i])], len(y_scaled), len(y), color='gray', alpha=0.5)            
+            axs[i,2].fill_betweenx([min(y[:,i]),max(y[:,i])], self.time[int(self.TRAIN_PERC*len(self.time))], self.time[-1], color='gray', alpha=0.5)            
             axs[i,2].grid()
         plt.tight_layout()
         plt.show()
                 
-    def main(self,units1=20,units2=20,units3=35,_learningRate=.01, SelectSBP=True):
+    def train_model(self,units1=20,units2=20,units3=35,_learningRate=.01, SelectSBP=True):
         '''
           SelectSBP = True :SBP otherwise DBP
         '''
-        xtrain_reshape, _, ytrain, _,_,_,_,_ = self.data_prepare()
+        Train_data = self.data_prepare()
 
-        _, n_features,_ = xtrain_reshape.shape
+        xtrain = Train_data['Train']['x']
+        ytrain = Train_data['Train']['y']
+        _, n_features,_ = xtrain.shape
 
-        print(f"Number of features after PCA: {xtrain_reshape.shape[1]}")
+        print(f"Number of features after PCA: {xtrain.shape[1]}")
 
         # Make Model
         model = self.get_model(n_features, units1,units2,units3,_learningRate)
         model.summary()
 
-        history = model.fit(xtrain_reshape, 
+        history = model.fit(xtrain, 
                             ytrain,
                             epochs=30, 
                             validation_split=0.15, 
@@ -193,10 +200,45 @@ class lstm_sintec(object):
         self.history_plot(history)
         return history
 
+    def denormalize(self,y,y_std,y_mean):
+        return y*y_std+y_mean
+
+    def check_model(self,model):
+
+        data = self.data_prepare()
+        # make predictions
+        trainPredict = model.predict(data['Train']['x'])#xtrain_reshape)
+        # testPredict = model.predict(data['Test']['x'])#xtest_reshape)
+        y_Sep_hat = model.predict(data['Sep']['x'])#x_Sep)
+
+        X_scaled = np.reshape(data['Dataset']['x'],(data['Dataset']['x'].shape[0],data['Dataset']['x'].shape[1],1))#X_scaled, (X_scaled.shape[0], X_scaled.shape[1], 1))
+
+        trainPredict = self.denormalize(trainPredict,self.ssy,self.mmy)
+        # testPredict = self.denormalize(testPredict,self.ssy,self.mmy)
+        ytrain = self.denormalize(data['Train']['y'],self.ssy,self.mmy)
+        # ytest = self.denormalize(data['Test']['y'],self.ssy,self.mmy)
+        y_Sep_hat = self.denormalize(y_Sep_hat,self.ssy,self.mmy)
+        y_Sep = self.denormalize(data['Sep']['y'],self.ssy,self.mmy)
+
+        trainScore = math.sqrt(mean_squared_error(ytrain[:,0], trainPredict[:,0]))
+        print( 'Train Score [DBP]: %.2f RMSE' % (trainScore))
+        testScore = math.sqrt(mean_squared_error(y_Sep[:,0], y_Sep_hat[:,0]))
+        print( 'Test Score [DBP]: %.2f RMSE' % (testScore))
+
+        trainScore = math.sqrt(mean_squared_error(ytrain[:,1], trainPredict[:,1]))
+        print( 'Train Score [SBP]: %.2f RMSE' % (trainScore))
+        testScore = math.sqrt(mean_squared_error(y_Sep[:,1], y_Sep_hat[:,1]))
+        print( 'Test Score [SBP]: %.2f RMSE' % (testScore))
+
+        self.plot_pred(model, X_scaled, data['Dataset']['y'],y_Sep,y_Sep_hat)
+
+
     def run_gridsearch(self,param_grid):
 
-        xtrain_reshape, xtest_reshape, ytrain, ytest,_,_,_,_ = self.data_prepare()
-        _, n_features,_ = xtrain_reshape.shape
+        data =  self.data_prepare()
+        _, n_features,_ = data['Train']['x'].shape
+        param_grid['n_features'] = [n_features]
+
         print(f"Number of features after PCA: {n_features}")
         model = KerasRegressor(build_fn=self.get_model, epochs=70, batch_size=32, verbose=0)
 
@@ -206,91 +248,27 @@ class lstm_sintec(object):
                             cv=kfold, verbose=1,
                             return_train_score=True)
         
-        grid_result = grid.fit(xtrain_reshape, ytrain)
+        grid_result = grid.fit(data['Train']['x'], data['Train']['y'])
         print(f"best_estimator_: {grid_result.best_estimator_}")
         print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
 
-patient = '3402408'
-ls = lstm_sintec(patient=patient)
-history = ls.main(units1=128, units2=128, units3=128, _learningRate=.001, SelectSBP=False)
+if __name__=='__main__':
+    patient = '3402408'
+    ls = lstm_sintec(patient=patient)
 
-ls = lstm_sintec(patient = patient) #
-model = load_model(ls.final_model+'model5.h5')
-xtrain_reshape, xtest_reshape, ytrain, ytest, X_scaled,y_scaled,x_Sep, y_Sep = ls.data_prepare()
+    # history = ls.train_model(units1=128, units2=128, units3=128, _learningRate=.001, SelectSBP=False)
 
-# make predictions
-trainPredict = model.predict(xtrain_reshape)
-testPredict = model.predict(xtest_reshape)
-y_Sep_hat = model.predict(x_Sep)
+    # model = load_model(ls.final_model+'model5.h5')
+    # ls.check_model(model)
+    
 
-X_scaled = np.reshape(X_scaled, (X_scaled.shape[0], X_scaled.shape[1], 1))
-
-trainPredict = trainPredict * ls.ssy + ls.mmy
-testPredict = testPredict * ls.ssy + ls.mmy
-ytrain = ytrain * ls.ssy + ls.mmy
-ytest = ytest * ls.ssy + ls.mmy
-y_Sep_hat = y_Sep_hat* ls.ssy +ls.mmy
-y_Sep = y_Sep*ls.ssy + ls.mmy
-
-trainScore = math.sqrt(mean_squared_error(ytrain[:,0], trainPredict[:,0]))
-print( 'Train Score [DBP]: %.2f RMSE' % (trainScore))
-testScore = math.sqrt(mean_squared_error(y_Sep[:,0], y_Sep_hat[:,0]))
-print( 'Test Score [DBP]: %.2f RMSE' % (testScore))
-
-trainScore = math.sqrt(mean_squared_error(ytrain[:,1], trainPredict[:,1]))
-print( 'Train Score [SBP]: %.2f RMSE' % (trainScore))
-testScore = math.sqrt(mean_squared_error(y_Sep[:,1], y_Sep_hat[:,1]))
-print( 'Test Score [SBP]: %.2f RMSE' % (testScore))
-
-ls.plot_pred(model, X_scaled, y_scaled,y_Sep,y_Sep_hat)
-
-# y_hat = model.predict(X_scaled)
-# y_hat = y_hat * ls.ssy+ls.mmy
-# y = y_scaled * ls.ssy+ls.mmy
-
-# x = list(range(len(y)))
-# x_Sep = [i + len(y) for i in range(len(y_Sep))]
-# y = np.concatenate((y,y_Sep), axis=0)
-# y_hat = np.concatenate((y_hat,y_Sep_hat), axis=0)
-
-# for i in range(2):
-#   if i==0:
-#     _title = 'DBP'
-#   else:
-#     _title = 'SBP'
-
-#   plt.figure()
-#   plt.plot(y_hat[:,i], c='r')
-#   plt.plot(y[:,i], c='b')
-#   plt.show()
-
-#   # plot regression plot 
-#   plt.figure()
-#   sns.regplot(x=y[:,i],y=y_hat[:,i], scatter_kws={'s': 2})
-#   plt.xlabel("True Values")
-#   plt.ylabel("Predicted Values")
-#   plt.title(f"Regression Plot of True Values vs. Predicted Values({_title})")
-#   plt.show()
-
-#   # Plot error histogram
-#   error = y [:,i]- y_hat[:,i]
-
-#   plt.hist(error, bins=20, rwidth=0.8)
-#   plt.xlabel("Error(mmHg)")
-#   plt.ylabel("Frequency")
-
-#   plt.title(f"Histogram of Error ({_title})")
-#   plt.show()
-
-# patient = '3402408'  # 'alldataset' '3400715'   '3402291'   '3402408' 3604404
-
-# ls = lstm_sintec(patient=patient)
-# param_grid = {'n_features':[8],
-#               'units1': [5,10],
-#               'units2': [10],
-#               'units3': [4,30,128],
-#               '_learningRate':[0.001, 0.0001]}
-# history = ls.run_gridsearch(param_grid)
+    param_grid = {
+        'units1': [10],
+        'units2': [10],
+        'units3': [128],
+        '_learningRate':[0.01]
+        }
+    ls.run_gridsearch(param_grid)
 
 
 # Best: -0.971968 using {'_learningRate': 0.001, 'n_features': 8, 'units1': 128, 'units2': 32, 'units3': 32}
