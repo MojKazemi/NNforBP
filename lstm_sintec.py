@@ -26,15 +26,15 @@ class lstm_sintec(object):
     def __init__(self,patient):
         self.TRAIN_PERC = 0.95
         if not os.path.exists('./Dataset/NN_model'):
-          os.mkdir(self.regr_path+'NN_model')
+          os.mkdir('./Dataset/NN_model')
         self.regr_path = './Dataset/NN_model/'
 
         if not os.path.exists(self.regr_path+'Plots'):
           os.mkdir(self.regr_path+'Plots')
-        if not os.path.exists(self.regr_path+'Final_Model'):
+        if not os.path.exists(self.regr_path + 'Final_Model'):
             os.mkdir(self.regr_path + 'Final_Model/')
 
-        self.plot_path = self.regr_path+'Plots'
+        self.plot_path = self.regr_path + 'Plots/'
         self.final_model = self.regr_path + 'Final_Model/'
         self.patient = patient
         self.df = pd.read_csv(self.regr_path + patient+'.csv').dropna() 
@@ -171,6 +171,7 @@ class lstm_sintec(object):
             # Fill the space between the vertical lines
             axs[i,2].fill_betweenx([min(y[:,i]),max(y[:,i])], self.time[int(self.TRAIN_PERC*len(self.time))], self.time[-1], color='gray', alpha=0.5)            
             axs[i,2].grid()
+        plt.savefig(self.plot_path+self.patient+'_Pred.png')
         plt.tight_layout()
         plt.show()
                 
@@ -232,7 +233,6 @@ class lstm_sintec(object):
 
         self.plot_pred(model, X_scaled, data['Dataset']['y'],y_Sep,y_Sep_hat)
 
-
     def run_gridsearch(self,param_grid):
 
         data =  self.data_prepare()
@@ -256,19 +256,19 @@ if __name__=='__main__':
     patient = '3402408'
     ls = lstm_sintec(patient=patient)
 
-    # history = ls.train_model(units1=128, units2=128, units3=128, _learningRate=.001, SelectSBP=False)
+    history = ls.train_model(units1=128, units2=128, units3=128, _learningRate=.001, SelectSBP=False)
 
-    # model = load_model(ls.final_model+'model5.h5')
-    # ls.check_model(model)
+    model = load_model(ls.final_model+'model5.h5')
+    ls.check_model(model)
     
 
-    param_grid = {
-        'units1': [10],
-        'units2': [10],
-        'units3': [128],
-        '_learningRate':[0.01]
-        }
-    ls.run_gridsearch(param_grid)
+    # param_grid = {
+    #     'units1': [10],
+    #     'units2': [10],
+    #     'units3': [128],
+    #     '_learningRate':[0.01]
+    #     }
+    # ls.run_gridsearch(param_grid)
 
 
 # Best: -0.971968 using {'_learningRate': 0.001, 'n_features': 8, 'units1': 128, 'units2': 32, 'units3': 32}
