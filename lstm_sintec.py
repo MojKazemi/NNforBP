@@ -24,7 +24,7 @@ class lstm_sintec(object):
      LSTM NN Model for Prediction the Blood Presure
     '''
     def __init__(self,patient):
-        self.TRAIN_PERC = 0.95
+        self.TRAIN_PERC = 0.75
         if not os.path.exists('./Dataset/NN_model'):
           os.mkdir('./Dataset/NN_model')
         self.regr_path = './Dataset/NN_model/'
@@ -44,6 +44,7 @@ class lstm_sintec(object):
         self.X = self.df[input_col]
         self.y = self.df[output_col]
         self.time = self.df['Time'].values
+        self.showplot = False
 
     def data_prepare(self):
         # Normaliziation
@@ -123,8 +124,8 @@ class lstm_sintec(object):
         plt.ylabel('Loss')
         plt.xlabel('Epoch')
         plt.legend(['Train', 'Validation'], loc='upper left')
-        plt.savefig(self.plot_path + f'{patient}_loss.png')
-        plt.show()
+        # plt.savefig(self.plot_path + f'{patient}_loss.png')
+        if self.showplot: plt.show()
     
     def plot_pred(self,model,X_scaled,y_scaled, y_Sep, y_Sep_hat):
 
@@ -171,9 +172,9 @@ class lstm_sintec(object):
             # Fill the space between the vertical lines
             axs[i,2].fill_betweenx([min(y[:,i]),max(y[:,i])], self.time[int(self.TRAIN_PERC*len(self.time))], self.time[-1], color='gray', alpha=0.5)            
             axs[i,2].grid()
-        plt.savefig(self.plot_path+self.patient+'_Pred.png')
+        # plt.savefig(self.plot_path+self.patient+'_Pred.png')
         plt.tight_layout()
-        plt.show()
+        if self.showplot: plt.show()
                 
     def train_model(self,units1=20,units2=20,units3=35,_learningRate=.01, SelectSBP=True):
         '''
@@ -196,16 +197,16 @@ class lstm_sintec(object):
                             epochs=30, 
                             validation_split=0.15, 
                             verbose=0)
-        model.save(self.final_model + 'model5.h5')
+        # model.save(self.final_model + 'model.h5')
 
         self.history_plot(history)
-        return history
+        return history, model
 
     def denormalize(self,y,y_std,y_mean):
         return y*y_std+y_mean
 
-    def check_model(self,model):
-
+    def check_model(self,model): 
+        RMSError ={'DBP':{},'SBP':{}}
         data = self.data_prepare()
         # make predictions
         trainPredict = model.predict(data['Train']['x'])#xtrain_reshape)
@@ -221,17 +222,30 @@ class lstm_sintec(object):
         y_Sep_hat = self.denormalize(y_Sep_hat,self.ssy,self.mmy)
         y_Sep = self.denormalize(data['Sep']['y'],self.ssy,self.mmy)
 
-        trainScore = math.sqrt(mean_squared_error(ytrain[:,0], trainPredict[:,0]))
-        print( 'Train Score [DBP]: %.2f RMSE' % (trainScore))
-        testScore = math.sqrt(mean_squared_error(y_Sep[:,0], y_Sep_hat[:,0]))
-        print( 'Test Score [DBP]: %.2f RMSE' % (testScore))
+        # RMSError['DBP']['Train'] = math.sqrt(mean_squared_error(ytrain[:,0], trainPredict[:,0]))
+        # print( 'Train Score [DBP] for %s : %.2f RMSE' % (self.patient,RMSError['DBP']['Train']))
 
-        trainScore = math.sqrt(mean_squared_error(ytrain[:,1], trainPredict[:,1]))
-        print( 'Train Score [SBP]: %.2f RMSE' % (trainScore))
-        testScore = math.sqrt(mean_squared_error(y_Sep[:,1], y_Sep_hat[:,1]))
-        print( 'Test Score [SBP]: %.2f RMSE' % (testScore))
+        # RMSError['DBP']['Test'] = math.sqrt(mean_squared_error(y_Sep[:,0], y_Sep_hat[:,0]))
+        # print( 'Test Score [DBP] for %s : %.2f RMSE' % (self.patient, RMSError['DBP']['Test']))
 
+        # RMSError['SBP']['Train'] = math.sqrt(mean_squared_error(ytrain[:,1], trainPredict[:,1]))
+        # print( 'Train Score [SBP]: %.2f RMSE' % (RMSError['SBP']['Train']))
+        # RMSError['SBP']['Test'] = math.sqrt(mean_squared_error(y_Sep[:,1], y_Sep_hat[:,1]))
+        # print( 'Test Score [SBP]: %.2f RMSE' % (RMSError['SBP']['Test']))
+
+        RMSError['DBP']['Train'] = round(mean_absolute_error(ytrain[:,0], trainPredict[:,0]))
+        print( 'Train Score [DBP] for %s : %.2f MAE' % (self.patient,RMSError['DBP']['Train']))
+
+        RMSError['DBP']['Test'] = round(mean_absolute_error(y_Sep[:,0], y_Sep_hat[:,0]))
+        print( 'Test Score [DBP] for %s : %.2f MAE' % (self.patient, RMSError['DBP']['Test']))
+
+        RMSError['SBP']['Train'] = round(mean_absolute_error(ytrain[:,1], trainPredict[:,1]))
+        print( 'Train Score [SBP]: %.2f MAE' % (RMSError['SBP']['Train']))
+        RMSError['SBP']['Test'] = round(mean_absolute_error(y_Sep[:,1], y_Sep_hat[:,1]))
+        print( 'Test Score [SBP]: %.2f MAE' % (RMSError['SBP']['Test']))
         self.plot_pred(model, X_scaled, data['Dataset']['y'],y_Sep,y_Sep_hat)
+        
+        return RMSError
 
     def run_gridsearch(self,param_grid):
 
@@ -253,13 +267,13 @@ class lstm_sintec(object):
         print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
 
 if __name__=='__main__':
-    patient = '3402408'
-    ls = lstm_sintec(patient=patient)
+    # patient = '3402408' #'3402291'#'3400715'
+    # ls = lstm_sintec(patient=patient)
 
-    history = ls.train_model(units1=128, units2=128, units3=128, _learningRate=.001, SelectSBP=False)
+    # history , model= ls.train_model(units1=128, units2=128, units3=128, _learningRate=.001, SelectSBP=False)
 
-    model = load_model(ls.final_model+'model5.h5')
-    ls.check_model(model)
+    # # model = load_model(ls.final_model+'model5.h5')
+    # RMSerror = ls.check_model(model)
     
 
     # param_grid = {
@@ -273,3 +287,22 @@ if __name__=='__main__':
 
 # Best: -0.971968 using {'_learningRate': 0.001, 'n_features': 8, 'units1': 128, 'units2': 32, 'units3': 32}
 # Best: -0.521414 using {'_learningRate': 0.001, 'n_features': 8, 'units1': 32, 'units2': 128, 'units3': 128}
+    import json
+    Error_Table = {}
+    for n,file in enumerate(os.listdir('./Dataset/NN_model')):
+        if len(file.split('.')) > 1:
+            if file.split('.')[1] == 'csv':
+                print(patient:=file.split('.')[0])
+                try:
+                    ls = lstm_sintec(patient=patient)
+
+                    history, model = ls.train_model(units1=128, units2=128, units3=128, _learningRate=.001, SelectSBP=False)
+
+                    RMSError = ls.check_model(model)
+                    Error_Table[patient] = RMSError
+                except Exception as e:
+                    print(f"{patient} didn't complete")
+                    print("An error occurred:", e)
+    print('----->>>> Finish <<<<-------')            
+    with open('./my_dict.json', "w") as f:
+        json.dump(Error_Table, f, indent=4)
