@@ -178,7 +178,6 @@ class PreProcess_Sintec():
                 break
         return existP
         
-        pass
     def Build_DataFrame(self):
 
         SPs_new, Trs, UpTime, PPG_h, BTB_ppg, loc_PPG_h = self.ppg_feature()
@@ -221,14 +220,13 @@ class PreProcess_Sintec():
 
         d =abs(len(dataset['HR'])-len(df_Output['ecg_filt']))
         if d != 0:
-            print(d)
+            # print(d)
             for i in range(d):
                 hr = np.append(hr, np.nan)
                 ptt= np.append(ptt, np.nan)
 
         df_Output['HR'] = hr
         df_Output['PTT'] = ptt
-        df_Output.to_csv('./bbbbbb.csv')
         return df_Output
 
     def df_median(self, df):
@@ -296,7 +294,7 @@ class PreProcess_Sintec():
             axs[i].legend()
             axs[i].grid('both')
         plt.savefig(f'./Plots/LSTM/{self.patient}_features.png')
-        plt.show()
+        # plt.show()
 
     def main(self):
 
@@ -307,8 +305,9 @@ class PreProcess_Sintec():
         # self.Med_df_Out = self.df_median(df_Output)
 
         self.Med_df_Out = df_Output.interpolate(method='polynomial',order=1)
+        self.Med_df_Out = self.Med_df_Out
 
-        self.Med_df_Out.to_csv('Dataset/NN_Features/'+self.patient+'.csv')
+        self.Med_df_Out.to_csv('Dataset/NN_model/'+self.patient+'.csv')
 
 
         # print(self.Med_df_Out.columns)
@@ -318,11 +317,20 @@ if __name__=='__main__':
     # file_list = os.listdir('./Dataset/')
     # for file in file_list[0:5]:
     #     if file.split('.')[1] == 'csv':
-    #         print(file)
-    #         PrePS = PreProcess_Sintec(patient=file.split('.')[0])
-    #         PrePS.main()
-
-
-    PrePS = PreProcess_Sintec(patient='3602772')   #3600490   (3602521 shekam dard)
-    PrePS.main()
+    #         print(patient:=file.split('.')[0])
+    #         try:
+    #             PrePS = PreProcess_Sintec(patient)
+    #             PrePS.main()
+    #         except:
+    #             print(f"{patient} didn't complete")
+    import os
+    for n,file in enumerate(os.listdir('./Dataset/')):
+        # pat_name = file.split('_')[0]
+        if file.split('.')[1] == 'csv':
+            print(patient:=file.split('.')[0])
+            try:
+                PrePS = PreProcess_Sintec(patient=patient)   #3600490   (3602521 shekam dard)
+                PrePS.main()
+            except:
+                print(f"{patient} didn't complete")
     # print(len(PrePS.Med_df_Out))
