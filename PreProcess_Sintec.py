@@ -111,7 +111,7 @@ class PreProcess_Sintec():
         RTs, _ = scipy.signal.find_peaks(self.ecg_filt, prominence=.05, distance=20)
         RTPs, _ = scipy.signal.find_peaks(self.ecg_filt, prominence=.05, distance=10)
         T_LMin, _ = scipy.signal.find_peaks(-self.ecg_filt, prominence=.16, distance=10)  #.16
-
+        
         BTB_R = []
         for index, i in enumerate(Rs):
             if index < (len(Rs)-1):
@@ -137,7 +137,8 @@ class PreProcess_Sintec():
             else:
                 Rs_dT.append((i, (i-(i - pre_i)/2, i+abs(i - Rs[index+1])/2)))
                 pre_i = i
-        # clean Ts, Ps      
+        # clean Ts, Ps 
+        print(f'T_LMin{len(T_LMin)}')     
         for rs,dt in Rs_dT:
             existP = self.existParam(Ts,lowLim=rs,upperLim=dt[1])
             if not existP:
@@ -153,6 +154,30 @@ class PreProcess_Sintec():
                 except:
                     pass
                 # print(rs+Ts_new)
+            existT_LMin = self.existParam(T_LMin,lowLim=rs,upperLim=dt[1])
+            if not existT_LMin:
+                if int(dt[1])>len(self.ecg_filt):
+                    _series = self.ecg_filt[rs:-1]
+                else:
+                    _series=self.ecg_filt[rs:int(dt[1])]
+                T_LMin_new, _ = scipy.signal.find_peaks(-_series, prominence=.01, distance=5)
+                print(f'-----{T_LMin_new}')
+                try:
+                    min1 = min(T_LMin_new)
+                    if len(T_LMin_new)>1:
+                        mask = T_LMin_new != min1
+                        T_LMin_new = T_LMin_new[mask]
+                        min2 = min(T_LMin_new)
+                        T_LMin = np.concatenate([T_LMin,[rs+min1],[rs+min2]])
+                    else:
+                        T_LMin = np.concatenate([T_LMin,[rs+min1]])
+                    
+                    print(f'>>{len(T_LMin)}')
+                    print(T_LMin)
+                except Exception as e:
+                    print('fall', e)
+                    pass
+        print(f'T_LMin{len(T_LMin)}')
 
         # Find Qs, Ss
         Qs, Ss = [], []
@@ -294,7 +319,7 @@ class PreProcess_Sintec():
             axs[i].legend()
             axs[i].grid('both')
         plt.savefig(f'./Plots/LSTM/{self.patient}_features.png')
-        # plt.show()
+        plt.show()
 
     def main(self):
 
@@ -304,7 +329,8 @@ class PreProcess_Sintec():
 
         # self.Med_df_Out = self.df_median(df_Output)
 
-        self.Med_df_Out = df_Output.interpolate(method='polynomial',order=1)
+        interp_output = df_Output.interpolate(method='polynomial',order=1)
+        self.Med_df_Out = interp_output.round(3)
         self.Med_df_Out = self.Med_df_Out
 
         self.Med_df_Out.to_csv('Dataset/NN_model/'+self.patient+'.csv')
@@ -313,24 +339,20 @@ class PreProcess_Sintec():
         # print(self.Med_df_Out.columns)
 
 if __name__=='__main__':
+    patient = '3403213'
+    PrePS = PreProcess_Sintec(patient=patient)   #3600490   (3602521 shekam dard)
+    PrePS.main()
+
     # import os
-    # file_list = os.listdir('./Dataset/')
-    # for file in file_list[0:5]:
-    #     if file.split('.')[1] == 'csv':
-    #         print(patient:=file.split('.')[0])
+    # for n,file in enumerate(os.listdir('./Dataset/')):
+    #     # pat_name = file.split('_')[0]
+    #      if len(file.split('.')) > 1:
+    #         if file.split('.')[1] == 'csv':
+    #             print(patient:=file.split('.')[0])
     #         try:
-    #             PrePS = PreProcess_Sintec(patient)
+    #             PrePS = PreProcess_Sintec(patient=patient)   #3600490   (3602521 shekam dard)
     #             PrePS.main()
-    #         except:
+    #         except Exception as e:
     #             print(f"{patient} didn't complete")
-    import os
-    for n,file in enumerate(os.listdir('./Dataset/')):
-        # pat_name = file.split('_')[0]
-        if file.split('.')[1] == 'csv':
-            print(patient:=file.split('.')[0])
-            try:
-                PrePS = PreProcess_Sintec(patient=patient)   #3600490   (3602521 shekam dard)
-                PrePS.main()
-            except:
-                print(f"{patient} didn't complete")
+    #             print(e)
     # print(len(PrePS.Med_df_Out))
