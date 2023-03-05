@@ -26,17 +26,12 @@ class lstm_sintec(object):
     '''
     def __init__(self,patient):
         self.TRAIN_PERC = 0.75
-        self.regr_path = './Dataset_2/'
-
-        if not os.path.exists(self.regr_path+'Plots'):
-          os.mkdir(self.regr_path+'Plots')
-        if not os.path.exists(self.regr_path + 'Final_Model'):
-            os.mkdir(self.regr_path + 'Final_Model/')
-
-        self.plot_path = self.regr_path + 'Plots/'
-        self.final_model = self.regr_path + 'Final_Model/'
+        self.regr_path = './Dataset'
+        self.check_dir()
+        self.plot_path = './Plots'
+        self.final_model = './Final_Model'
         self.patient = patient
-        self.df = pd.read_csv(self.regr_path + patient+'.csv').dropna() 
+        self.df = pd.read_csv(f'{self.regr_path}/{patient}.csv').dropna() 
         input_col = ['Tr', 'SPs_new', 'UpTime', 'BTB_PPG', 'PPG_h',
                      'R', 'BTB_R', 'P', 'T', 'Q', 'S', 'HR']
         output_col = ['DBP', 'SBP']
@@ -44,40 +39,33 @@ class lstm_sintec(object):
         self.y = self.df[output_col]
         self.time = self.df['Time'].values
         self.showplot = False
+        plt.style.use('seaborn-darkgrid')
+        self.figsize = (15,9)
+
+    def check_dir(self):
+        if not os.path.exists('./Plots'):
+          os.mkdir('./Plots')
+        if not os.path.exists('./Final_Model'):
+            os.mkdir('./Final_Model')
 
     def data_prepare(self):
         # Normaliziation
         x = self.X.values
         y = self.y.values
 
-        # self.mmx = np.around(x.mean(axis=0),2)
-        # self.ssx = np.around(x.std(axis=0),2)
-        
-        # X_scaled = np.around((x-self.mmx)/self.ssx,3)
-
-        # self.mmy = np.around(y.mean(axis=0),2)
-        # self.ssy = np.around(y.std(axis=0),2)
-        # y_scaled = np.around((y-self.mmy)/self.ssy,3)
         scale_x = StandardScaler()
         X_scaled = scale_x.fit_transform(x)
 
         scale_y = StandardScaler()
         y_scaled = scale_y.fit_transform(y)
 
-
-
-        # print(X_scaled.shape)
-        # for j in range(X_scaled.shape[1]):
-        #     nan_indices = [i for i, x in enumerate(X_scaled[:,j]) if math.isnan(x)]
-        #     print(self.ssx[j])
-        #     print(X_scaled[1:5,j], nan_indices[1:5])
-        print(f"Number of features before PCA: {X_scaled.shape[1]}")
+        # print(f"Number of features before PCA: {X_scaled.shape[1]}")
         # Apply PCA to the data
         pca = PCA(n_components=0.95)
         X_scaled = pca.fit_transform(X_scaled)
 
         # Save the PCA model
-        # joblib.dump(pca, self.final_model+'pca.joblib')
+        # joblib.dump(pca, f'{self.final_model}/pca_{self.patient}.joblib')
 
         train_size = int(self.TRAIN_PERC*len(X_scaled))
 
@@ -132,7 +120,7 @@ class lstm_sintec(object):
         plt.ylabel('Loss')
         plt.xlabel('Epoch')
         plt.legend(['Train', 'Validation'], loc='upper left')
-        plt.savefig(self.plot_path + f'{patient}_loss.png')
+        plt.savefig(f'{self.plot_path}/{patient}_loss.png')
         if self.showplot: plt.show()
         plt.close()
     
@@ -148,6 +136,7 @@ class lstm_sintec(object):
         y_hat = np.concatenate((y_hat,y_Sep_hat), axis=0)
 
         fig, axs = plt.subplots(2, 3)
+        fig.set_size_inches(self.figsize)
         for i in range(2):
             if i==0:
                 _title = 'DBP'
@@ -179,7 +168,7 @@ class lstm_sintec(object):
             # represent the test region
             axs[i,2].fill_betweenx([min(y[:,i]),max(y[:,i])], self.time[int(self.TRAIN_PERC*len(self.time))], self.time[-1], color='gray', alpha=0.5)            
             axs[i,2].grid()
-        plt.savefig(self.plot_path+self.patient+'_Pred.png')
+        plt.savefig(f'{self.plot_path}/{self.patient}_Pred.png')
         plt.tight_layout()
         if self.showplot: plt.show()
         plt.close()
@@ -200,18 +189,18 @@ class lstm_sintec(object):
         model = self.get_model(n_features, units1,units2,units3,_learningRate)
         # model.summary()
 
+        print('The Model is in training mode ...')
         history = model.fit(xtrain, 
                             ytrain,
                             epochs=30, 
                             validation_data=(Train_data['Val']['x'], Train_data['Val']['y']), 
                             verbose=0)
-        model.save(f'{self.final_model}model_{self.patient}.h5')
+        print('Training complete.')
+
+        model.save(f'{self.final_model}/model_{self.patient}.h5')
 
         self.history_plot(history)
         return history, model
-
-    def denormalize(self,y,y_std,y_mean):
-        return y*y_std+y_mean
 
     def check_model(self,model): 
         RMSError ={'DBP':{},'SBP':{}}
@@ -221,14 +210,7 @@ class lstm_sintec(object):
         # testPredict = model.predict(data['Test']['x'])
         y_Sep_hat = model.predict(data['Sep']['x'])
 
-        X_scaled = np.reshape(data['Dataset']['x'],(data['Dataset']['x'].shape[0],data['Dataset']['x'].shape[1],1))#X_scaled, (X_scaled.shape[0], X_scaled.shape[1], 1))
-
-        # trainPredict = self.denormalize(trainPredict,self.ssy,self.mmy)
-        # # testPredict = self.denormalize(testPredict,self.ssy,self.mmy)
-        # ytrain = self.denormalize(data['Train']['y'],self.ssy,self.mmy)
-        # # ytest = self.denormalize(data['Test']['y'],self.ssy,self.mmy)
-        # y_Sep_hat = self.denormalize(y_Sep_hat,self.ssy,self.mmy)
-        # y_Sep = self.denormalize(data['Sep']['y'],self.ssy,self.mmy)
+        X_scaled = np.reshape(data['Dataset']['x'],(data['Dataset']['x'].shape[0],data['Dataset']['x'].shape[1],1))
 
         trainPredict = data['scaler']['y'].inverse_transform(trainPredict)
         ytrain = data['scaler']['y'].inverse_transform(data['Train']['y'])
@@ -239,9 +221,6 @@ class lstm_sintec(object):
         print( 'Train Score [DBP] for %s : %.2f MAE' % (self.patient,RMSError['DBP']['Train']))
         RMSError['DBP']['Test'] = round(mean_absolute_error(y_Sep[:,0], y_Sep_hat[:,0]))
         print( 'Test Score [DBP] for %s : %.2f MAE' % (self.patient, RMSError['DBP']['Test']))
-
-        
-
 
         RMSError['SBP']['Train'] = round(mean_absolute_error(ytrain[:,1], trainPredict[:,1]))
         print( 'Train Score [SBP]: %.2f MAE' % (RMSError['SBP']['Train']))
@@ -280,7 +259,9 @@ class lstm_sintec(object):
             dbp_err.append(val['DBP']['Test'])
             sbp_err.append(val['SBP']['Test'])
 
-        _,axs = plt.subplots(1,2)
+        fig,axs = plt.subplots(1,2)
+        fig.set_size_inches(self.figsize)
+
         axs[0].hist(dbp_err, bins=20, rwidth=0.8)
         axs[0].set_xlabel('Error(mmHg)')
         axs[0].set_ylabel('Frequencies')
@@ -292,30 +273,20 @@ class lstm_sintec(object):
         axs[1].set_ylabel('Frequencies')
         axs[1].set_title('Histogram of error SBP')
         axs[1].grid()
-        plt.show()
+        if self.showplot: plt.show()
+        plt.savefig(f'{self.plot_path}/Hist_all_MAE.png')
 
 if __name__=='__main__':
     # patient = '3601980'#'3402408' #'3402291'#'3400715'
     # ls = lstm_sintec(patient=patient)
 
-    # history , model= ls.train_model(units1=128, units2=128, units3=128, _learningRate=.01)
-    
-    # # # model = load_model(ls.final_model+'model5.h5')
-    # RMSerror = ls.check_model(model)
-    # import json
-    # with open('./my_dict.json','r') as f:
-    #     my_dict = json.load(f)
-    # my_dict[patient] = RMSerror
-    # with open('./my_dict.json','w') as f:
-    #     json.dump(my_dict,f)
-
     import json
     Error_Table = {}
-    for n,file in enumerate(os.listdir('./Dataset_2')):
+    for n,file in enumerate(os.listdir('./Dataset')):
         if len(file.split('.')) > 1:
             if file.split('.')[1] == 'csv':
                 patient = file.split('.')[0]
-                path ='./Dataset_2'
+                path ='./Dataset'
                 print(f'Patient: {patient} - {n}\{len(os.listdir(path))}')
                 try:
                     ls = lstm_sintec(patient=patient)
