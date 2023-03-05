@@ -86,7 +86,7 @@ class SintecProj(object):
 
 				df['Time'] = df['Time'].apply(lambda x: x[3:-2])
 				df[df.columns[-1]] = df[df.columns[-1]].apply(lambda x: x[:-1])
-				df = df.replace('-', np.nan)
+				df = df.replace('-', np.nan)	
 				df.index = df['Time']
 
 				def_columns = []
@@ -112,9 +112,8 @@ class SintecProj(object):
 		# file_lst = [x for x in os.listdir(self.dataset_path) if '3601140' in x]
 
 		for file in file_lst:
-			patient = '3400715' #file.split('.')[0]
+			patient = file.split('.')[0]
 			print(f'Patient: {patient}')
-			print()
 			df = pd.read_csv(f'{self.dataset_path}/{file}').dropna()
 			df.index = range(0,len(df))
 			
@@ -165,7 +164,7 @@ class SintecProj(object):
 
 				axs[1,0] = plt.subplot(gs[1,0])
 				axs[1,0].plot(ecg_filt,label='ECG Filtered')
-				print('ECG:',len(ecg_filt))
+				# print('ECG:',len(ecg_filt))
 				# axs[1].plot(df['II'],label='ECG')
 				axs[1,0].scatter(Rs_diff,ecg_filt[Rs_diff],label='R peaks - with gradient',s=100,c='r')
 				axs[1,0].scatter(Rs,ecg_filt[Rs],label='R peaks',c='y')
@@ -208,7 +207,7 @@ class SintecProj(object):
 				plt.suptitle(f'Patient: {patient}')
 				plt.tight_layout()
 				if self.save_figure: plt.savefig(f'{tmp_path}/{patient}')
-			plt.show()
+			# plt.show()
 
 			dataset = self.find_PTT(ecg_filt,Rs,ppg_filt,SPs_new,patient)
 			df.index = np.array(list(df.index))/self.fs
@@ -218,8 +217,8 @@ class SintecProj(object):
 			regr_path = self.dataset_path+'/Regression'
 			self.create_path(regr_path)
 			dataset.to_csv(f'{regr_path}/{patient}.csv')
-			print('ecg_len',len(ecg_filt))
-			print('abp_len',len(df['ABP']))
+			# print('ecg_len',len(ecg_filt))
+			# print('abp_len',len(df['ABP']))
 		
 	def gaussian_distributions(self,curve,peaks):
 		x = np.arange(min(curve),max(curve),.001)
@@ -254,7 +253,7 @@ class SintecProj(object):
 				
 
 		curves = [kde_ppg, kde_sp, x_ppg, minimum]
-		check_plot = True
+		check_plot = False
 		if check_plot: plt.show()
 
 		return SP, curves
@@ -367,7 +366,7 @@ class SintecProj(object):
 		df.index = df['Time']
 		df['HR'] = tmp_df_hr
 		df['PTT'] = tmp_df_ptt
-		print('HR_len',len(df['HR']))
+		# print('HR_len',len(df['HR']))
 		return df.drop('Time',axis=1)
 
 	def regression_process(self):
@@ -590,7 +589,6 @@ class SintecProj(object):
 				except:
 					pass
 			
-			print(df)
 			plt.tight_layout()
 			self.create_path('Plots/Regression')
 			if self.save_figure: plt.savefig(f'Plots/Regression/{patient}.png')
@@ -601,7 +599,7 @@ class SintecProj(object):
 					# print(lab,err)
 					final_dict_sbp[patient].update({f'{lab} > {thresh}':err_sbp[cnt]})
 					final_dict_dbp[patient].update({f'{lab} > {thresh}':err_dbp[cnt]})
-			plt.show()
+			# plt.show()
 			
 		pd.DataFrame(final_dict_sbp).to_excel(f'{self.dataset_path}/sbp_thresh_errors.xlsx')
 		pd.DataFrame(final_dict_dbp).to_excel(f'{self.dataset_path}/dbp_thresh_errors.xlsx')
@@ -623,12 +621,11 @@ class SintecProj(object):
 			df['best'] = df.idxmin(axis=1)
 			# df['real best'] = np.where(df.min(axis=1)<np.ones(len(df))*3)
 			df['real best'] = np.where(np.abs(df['Ridge: alpha=0.01']-df['RF: n_trees=100'])>0.9, True, False)
-			print(df)
 			df = df[df['real best']]
 			best_values = df['best'].value_counts(sort=True)
 			print(f'For {x.upper()} the best values are:')
 			print(best_values)
-			print()
+			# print()
 
 	def regression(self,clf,y_train,X_train,X_test):
 		from sklearn.preprocessing import RobustScaler
