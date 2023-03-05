@@ -2,16 +2,86 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scipy
+import os
+
 
 from SintecProj import SintecProj
 
 class PreProcess_Sintec():
 
-    def __init__(self,patient = '3400715'):
+    def __init__(self,file = '3400715_pat.csv'):
+        self.showplot = False  
         self.fs = 125
-        self.patient = patient
-        self.regr_path = './Dataset/'
-        self.df = pd.read_csv(self.regr_path +self.patient+'.csv').dropna()
+        self.figsize = (15,9)
+        # self.patient = patient
+        self.patient_path = './Patients'
+        self.preprocess_data(file)
+        self.check_dir()
+        self.plt_Feat_path = './Plots/Features'
+        self.regr_path = './Dataset'
+
+    def read_data(self,file):
+        pat_name = file.split('_')[0]
+        if file.split('_')[1] == 'pat.csv':
+            df = pd.read_csv(f'{self.patient_path}/{file}',quotechar="'",sep=',',skiprows=[1])
+            if df.iloc[0][0][0] == '"':
+                df.columns = [x.replace('"',"") for x in df.columns]
+                df.columns = [x.replace("'","") for x in df.columns]
+
+                df['Time'] = df['Time'].apply(lambda x: x[3:-2])
+                df[df.columns[-1]] = df[df.columns[-1]].apply(lambda x: x[:-1])
+                df = df.replace('-', np.nan)	
+                df.index = df['Time']
+
+                def_columns = []
+                for x in df.columns:
+                    if 'ABP' in x or x=='II' or 'PLETH' in x:
+                        def_columns.append(x)
+                df = df[def_columns]
+                df = df.astype(float)
+            else:
+                df['Time'] = df['Time'].apply(lambda x: x[1:-1])
+                df.index = df['Time']
+                df = df.replace('-', np.nan)
+                df = df[['ABP','PLETH','II']]
+                df = df.astype(float)
+            if pat_name == '3601980': df = df[0:5021]
+        else:
+            df = pd.read_csv(f'{self.patient_path}/{file}')
+            columns = df.columns
+            df = df.rename(columns={columns[0]:'Time'})
+            df['Time'] = df['Time'].apply(lambda x: x.split(':')[-1][0:-3])
+            df = df.replace('', np.nan)
+            df = df.astype(float)
+            pat_name = pat_name + file.split('_')[1][0:4]
+        
+        df = self.cleaning_data(df)
+        return df, pat_name
+        
+    def cleaning_data(self, df):
+
+        df_new = df[(df['ABP'] > 50) & (df['ABP'] < 180)]
+        
+        if df_new['ABP'].isnull().all() or df_new['ABP'].nunique() == 1:
+            raise ValueError('There is not Signal ABP or the signal is constant')
+
+        if df_new['II'].isnull().all()  or df_new['II'].nunique() == 1:
+            raise ValueError('There is not Signal ECG or the signal is constant')
+
+        if df_new['PLETH'].isnull().all()  or df_new['II'].nunique() == 1:
+            raise ValueError('There Is not Signal PPG or or the signal is constant')
+
+        fig, axs = plt.subplots(3, 1)
+        df.plot(ax=axs[0],y='II')
+        df.plot(ax=axs[1],y='ABP')
+        df.plot(ax=axs[2],y='PLETH')
+
+        if self.showplot: plt.show()
+        
+        return df_new
+        
+    def preprocess_data(self, file):
+        self.df, self.patient = self.read_data(file)
         self.df.index = range(0, len(self.df))
         # Filtering the signal
         b, a = scipy.signal.butter(N=5, 
@@ -23,9 +93,16 @@ class PreProcess_Sintec():
                                 )
         self.ecg_filt = scipy.signal.filtfilt(b, a, self.df['II'])
         self.ecg_diff = np.gradient(np.gradient(self.ecg_filt))
-        self.ppg_filt = scipy.signal.filtfilt(b, a, self.df['PLETH'])
-        self.Med_df_Out =pd.DataFrame()        
+        self.ppg_filt = scipy.signal.filtfilt(b, a, self.df['PLETH'])   
 
+    def check_dir(self): 
+        if not os.path.exists('./Dataset'):
+            os.mkdir('./Dataset')
+        if not os.path.exists('./Plots'):
+            os.mkdir('./Plots')
+        if not os.path.exists('./Plots/Features'):
+            os.mkdir('./Plots/Features')   
+    
     def find_dbp_sbp(self):      
         # find DBP/SBP points
         DBPs, _ = scipy.signal.find_peaks(-self.df['ABP'], prominence=.5, distance=60, width=10)
@@ -36,21 +113,30 @@ class PreProcess_Sintec():
         """ 
             Find featurs of PPG Signal: Peak(SP) - Trough(Tr) - Up Time - BTB Interval - PPG Height
         """
-
         # find SP peaks/time of Trough (min of PPG) and UpTime
         SPs, _ = scipy.signal.find_peaks(self.ppg_filt, prominence=.05, width=10)
         SP = SintecProj()
         SPs_new, [kde_ppg, kde_sp, x_ppg, min_] = SP.PPG_peaks_cleaner(self.ppg_filt, SPs)
-        Trs, _ = scipy.signal.find_peaks(-self.ppg_filt, prominence=.05, width=30)
+        Trs, _ = scipy.signal.find_peaks(-self.ppg_filt, prominence=.05)
         # print(f'len Trs:{len(Trs)}')
-        print(f'len SPs new: {len(SPs_new)}--- len Trs: {len(Trs)}')
+        # print(f'len SPs new: {len(SPs_new)}--- len Trs: {len(Trs)}')
         # Trs cleaning
+        for i in range(len(SPs_new)-1):
+            elements = [x for x in Trs if SPs_new[i] < x < SPs_new[i+1]]
+            if len(elements) > 1:
+                elements.remove(max(elements))
+                Trs = np.setdiff1d(Trs, elements)
+            elif len(elements)==0:
+                tr_l,_ = scipy.signal.find_peaks(-self.ppg_filt[SPs_new[i]: SPs_new[i+1]])
+                Trs.append(SPs_new[i]+max(tr_l))
+
+
         for index in range(min(len(Trs),len(SPs_new))):
             if Trs[index] > SPs_new[index]:
                 if index ==0:
                     Trs = np.insert(Trs,index, 0)
                 else:
-                    tr_l,_ = scipy.signal.find_peaks(-self.ppg_filt[SPs_new[index-1]: SPs_new[index]], prominence=.05, width=10)
+                    tr_l,_ = scipy.signal.find_peaks(-self.ppg_filt[SPs_new[index-1]: SPs_new[index]])
                     Trs = np.insert(Trs,index, SPs_new[index-1]+tr_l)
 
         # calculate UpTime
@@ -99,8 +185,24 @@ class PreProcess_Sintec():
             except:
                 break
 
+        # for i in Trs:
+        #     min_greater,_index = self.find_smallest_greater(SPs_new,i)
+        #     if _index == None:
+        #         pass
+        #     else:
+        #         PPG_h.append(self.ppg_filt[min_greater]-self.ppg_filt[i])
+        #         loc_PPG_h.append(_index)
+
         # print(f'PPG_Height length: {len(PPG_h)}')
         return SPs_new, Trs, UpTime, PPG_h, BTB_ppg, loc_PPG_h
+
+    def find_smallest_greater(self, arr, i):
+        min_val, min_index = None, None
+        for index, val in enumerate(arr):
+            if val > i and (min_val is None or val < min_val):
+                min_val = val
+                min_index = index
+        return min_val, min_index
 
     def ecg_feature(self):
         """ 
@@ -112,11 +214,18 @@ class PreProcess_Sintec():
         RTPs, _ = scipy.signal.find_peaks(self.ecg_filt, prominence=.05, distance=10)
         T_LMin, _ = scipy.signal.find_peaks(-self.ecg_filt, prominence=.16, distance=10)  #.16
         
+        plt.figure()
+        plt.plot(self.ecg_filt)
+        plt.plot(Rs,self.ecg_filt[Rs], 'o')
+        if self.showplot: plt.show()
         BTB_R = []
         for index, i in enumerate(Rs):
             if index < (len(Rs)-1):
                 BTB_R.append(Rs[index+1] - i)
-        BTB_R.insert(0, round(np.mean(BTB_R[0:10])))
+        try:
+            BTB_R.insert(0, round(np.mean(BTB_R[0:10])))
+        except:
+            print(f'dddd{RTPs}')
 
         Ts = [i for i in RTs if i not in Rs]
         Ps = [i for i in RTPs if i not in RTs]
@@ -138,7 +247,7 @@ class PreProcess_Sintec():
                 Rs_dT.append((i, (i-(i - pre_i)/2, i+abs(i - Rs[index+1])/2)))
                 pre_i = i
         # clean Ts, Ps 
-        print(f'T_LMin{len(T_LMin)}')     
+        # print(f'T_LMin{len(T_LMin)}')     
         for rs,dt in Rs_dT:
             existP = self.existParam(Ts,lowLim=rs,upperLim=dt[1])
             if not existP:
@@ -154,30 +263,15 @@ class PreProcess_Sintec():
                 except:
                     pass
                 # print(rs+Ts_new)
-            existT_LMin = self.existParam(T_LMin,lowLim=rs,upperLim=dt[1])
-            if not existT_LMin:
-                if int(dt[1])>len(self.ecg_filt):
-                    _series = self.ecg_filt[rs:-1]
-                else:
-                    _series=self.ecg_filt[rs:int(dt[1])]
-                T_LMin_new, _ = scipy.signal.find_peaks(-_series, prominence=.01, distance=5)
-                print(f'-----{T_LMin_new}')
+            existP = self.existParam(Ps,lowLim=dt[0],upperLim = rs)
+            if not existP:
+                _series=self.ecg_filt[int(dt[0]):rs]
+                Ps_new, _ = scipy.signal.find_peaks(_series, prominence=.01, distance=5)
                 try:
-                    min1 = min(T_LMin_new)
-                    if len(T_LMin_new)>1:
-                        mask = T_LMin_new != min1
-                        T_LMin_new = T_LMin_new[mask]
-                        min2 = min(T_LMin_new)
-                        T_LMin = np.concatenate([T_LMin,[rs+min1],[rs+min2]])
-                    else:
-                        T_LMin = np.concatenate([T_LMin,[rs+min1]])
-                    
-                    print(f'>>{len(T_LMin)}')
-                    print(T_LMin)
-                except Exception as e:
-                    print('fall', e)
+                    Ps.append(dt[0]+max(Ps_new))
+                except:
                     pass
-        print(f'T_LMin{len(T_LMin)}')
+
 
         # Find Qs, Ss
         Qs, Ss = [], []
@@ -189,6 +283,27 @@ class PreProcess_Sintec():
                     else:
                         Ss.append(i)
 
+        for rs,dt in Rs_dT:
+            exist_Qs = self.existParam(Qs,lowLim=dt[0],upperLim=rs)
+            if not exist_Qs:
+                _series=self.ecg_filt[int(dt[0]):rs]
+                q_min, _ = scipy.signal.find_peaks(-_series, prominence=.01, distance=1)
+                try:
+                    Qs.append(dt[0] + max(q_min))
+                except Exception as e:
+                    # print('fall', e)
+                    pass
+            exist_ss = self.existParam(Ss,lowLim=rs,upperLim=dt[1])
+            if not exist_ss:
+                _series = self.ecg_filt[rs:int(dt[1])]
+                s_min,_ = scipy.signal.find_peaks(-_series, prominence=.01, distance=5)
+                try:
+                    Ss.append(rs + min(s_min))
+                except Exception as e:
+                    # print('fall', e)
+                    pass
+                
+        # print(f'len ecg {len(self.ecg_filt)}')
         # print(f'Num of R_peaks: {len(Rs)}')
         # print(f'Num of P points: {len(Ps)}')
         # print(f'Num of Q points: {len(Qs)}')
@@ -284,25 +399,19 @@ class PreProcess_Sintec():
 
         df_output.columns = new_columns
         df_output['HR'] = hr
-        df_output.to_csv('./asasa.csv')
         return df_output
 
     def plot_feature(self,df_Output):
-        # plt.close('all')
+        plt.close('all')
         fig, axs = plt.subplots(2, 1,sharex=True)
         fig.set_size_inches(15,9)
 
         axs[0].plot(df_Output['ecg_filt'])
         axs[0].scatter(x=df_Output.index, y=df_Output['T'], c='y', s=40, label='T')
-        # axs[0].scatter(x=Med_df_Out.index, y=Med_df_Out['Med_T'], marker='x', c='y', s=100, label='Med_T')
         axs[0].scatter(x=df_Output.index, y=df_Output['P'], c='c', s=40, label='P')
-        # axs[0].scatter(x=Med_df_Out.index, y=Med_df_Out['Med_P'], marker='x', c='c', s=100, label='Med_P')
         axs[0].scatter(x=df_Output.index, y=df_Output['R'], c='r', s=40, label='R')
-        # axs[0].scatter(x=Med_df_Out.index, y=Med_df_Out['Med_R'], marker='x', c='r', s=40, label='Med_R')
         axs[0].scatter(x=df_Output.index, y=df_Output['Q'], c='k', s=40, label='Q')
-        # axs[0].scatter(x=Med_df_Out.index, y=Med_df_Out['Med_Q'], marker='x', c='k', s=40, label='Med_Q')
         axs[0].scatter(x=df_Output.index, y=df_Output['S'], c='m', s=40, label='S')
-        # axs[0].scatter(x=Med_df_Out.index, y=Med_df_Out['Med_S'], marker='x', c='m', s=40, label='Med_S')
         axs[0].set_ylabel('ECG[(mV)]')
 
         df_Output['ppg_filt'].plot(ax=axs[1]) 
@@ -318,41 +427,79 @@ class PreProcess_Sintec():
 
             axs[i].legend()
             axs[i].grid('both')
-        plt.savefig(f'./Plots/LSTM/{self.patient}_features.png')
-        plt.show()
+        plt.savefig(f'{self.plt_Feat_path}/{self.patient}_feat.png')
+        plt.close()
+        # plt.show()
 
     def main(self):
 
         df_Output = self.Build_DataFrame()
-
         self.plot_feature(df_Output)
-
         # self.Med_df_Out = self.df_median(df_Output)
-
+        # for column in df_Output.columns:
+        #     print(column,len(df_Output[column].dropna()))
         interp_output = df_Output.interpolate(method='polynomial',order=1)
         self.Med_df_Out = interp_output.round(3)
-        self.Med_df_Out = self.Med_df_Out
+        self.Med_df_Out.to_csv(f'{self.regr_path}/{self.patient}.csv')
 
-        self.Med_df_Out.to_csv('Dataset/NN_model/'+self.patient+'.csv')
-
-
-        # print(self.Med_df_Out.columns)
 
 if __name__=='__main__':
-    patient = '3403213'
-    PrePS = PreProcess_Sintec(patient=patient)   #3600490   (3602521 shekam dard)
-    PrePS.main()
+    # file = '3903282_pat.csv'#'3904308_pat.csv' #'3400715_pat.csv'     3904396_pat
+    # PrePS = PreProcess_Sintec(file=file)   #3600490   (3602521 shekam dard)
+    # PrePS.main()
+    # breakpoint()
 
-    # import os
-    # for n,file in enumerate(os.listdir('./Dataset/')):
-    #     # pat_name = file.split('_')[0]
-    #      if len(file.split('.')) > 1:
-    #         if file.split('.')[1] == 'csv':
-    #             print(patient:=file.split('.')[0])
-    #         try:
-    #             PrePS = PreProcess_Sintec(patient=patient)   #3600490   (3602521 shekam dard)
-    #             PrePS.main()
-    #         except Exception as e:
-    #             print(f"{patient} didn't complete")
-    #             print(e)
-    # print(len(PrePS.Med_df_Out))
+    df_err = pd.DataFrame(columns=['patient', 'error'])
+    for n,file in enumerate(os.listdir('./Patients/')):
+        
+         if len(file.split('.')) > 1:
+            if file.split('.')[1] == 'csv':
+                patient = file.split('_')[0]
+                path = './Patients/'
+                print(f'Patient: {patient} - {n}\{len(os.listdir(path))}')
+            try:
+                PrePS = PreProcess_Sintec(file=file)   #3600490   (3602521 shekam dard)
+                PrePS.main()
+            except Exception as e:
+                print(f"{patient} didn't complete")
+                print(e)
+                # df,_ = PrePS.read_data(file)
+                # fig, axs = plt.subplots(3, 1)
+                # fig.set_size_inches(PrePS.figsize)
+                # df.plot(ax=axs[0],y='II')
+                # df.plot(ax=axs[1],y='ABP')
+                # df.plot(ax=axs[2],y='PLETH')
+                # axs[0].set_ylabel('-----')
+                # axs[0].set_title(f'Original signal for patient: {patient}')
+                # if not os.path.exists(f'{PrePS.plt_Feat_path}/error_Plot'):
+                #     os.mkdir(f'{PrePS.plt_Feat_path}/error_Plot')
+                # plt.savefig(f'{PrePS.plt_Feat_path}/error_Plot/{patient}_orig.png')
+                # plt.close()
+
+                # print(df['ABP'])
+                # print(f'ecg:\n{PrePS.ecg_filt}')
+
+                # if df['ABP'].isnull().values.all() or (df['ABP'] == 0).all():
+                #     state = 'The ABP signal does not exist'
+
+                # elif (PrePS.ecg_filt == 0).all() or np.isnan(PrePS.ecg_filt).all():
+                #     state = 'The ECG signal does not exist after filtering'
+
+                # elif (PrePS.ppg_filt == 0).all() or np.isnan(PrePS.ppg_filt).all():
+                #     state = 'The ECG signal does not exist after filtering'
+
+                # else:
+                #     state = 'Unkown'
+
+                df_err.loc[len(df_err)] = {'patient':patient,'error':e}
+                # with open('./feature_error.txt','a') as f:
+                #     f.write(f'\n{patient}\n')
+                #     f.write(f'{e}\n')
+                #     f.write('------>>>><<<<<-------')
+            # except Exception as e:
+            #     print(f'----->>> {e}')
+
+    df_err.to_csv('./Feat_Error.csv')
+
+    print(len(os.listdir('./Dataset')))
+
