@@ -10,7 +10,7 @@ from SintecProj import SintecProj
 class PreProcess_Sintec():
 
     def __init__(self,file = '3400715_pat.csv'):
-        self.showplot = False  
+        self.showplot = True  
         self.fs = 125
         self.figsize = (15,9)
         # self.patient = patient
@@ -68,8 +68,20 @@ class PreProcess_Sintec():
         if df_new['II'].isnull().all()  or df_new['II'].nunique() == 1:
             raise ValueError('There is not Signal ECG or the signal is constant')
 
-        if df_new['PLETH'].isnull().all()  or df_new['II'].nunique() == 1:
+        if df_new['PLETH'].isnull().all()  or df_new['PLETH'].nunique() == 1:
             raise ValueError('There Is not Signal PPG or or the signal is constant')
+
+        # drop_rows = []
+        # for i in range(8,len(df)):
+        #     # Check if any column has too many consecutive equal values
+        #     for col in df.columns:
+        #         if df.loc[i-8:i,col].eq(df.loc[i,col]).all():
+        #             drop_rows.append(i)
+
+        #             break  
+        # # print(f'drop row = {drop_row}')
+        # df.drop(drop_rows, inplace=True)
+        # df = df.reset_index(drop=True)
 
         fig, axs = plt.subplots(3, 1)
         df.plot(ax=axs[0],y='II')
@@ -93,7 +105,13 @@ class PreProcess_Sintec():
                                 )
         self.ecg_filt = scipy.signal.filtfilt(b, a, self.df['II'])
         self.ecg_diff = np.gradient(np.gradient(self.ecg_filt))
-        self.ppg_filt = scipy.signal.filtfilt(b, a, self.df['PLETH'])   
+        self.ppg_filt = scipy.signal.filtfilt(b, a, self.df['PLETH'])
+           
+        if np.isnan(self.ppg_filt).all():
+            raise ValueError('After filtering the PPG signal got Nan') 
+        
+        if np.isnan(self.ecg_filt).all():
+            raise ValueError('After filtering the ECG signal got Nan')
 
     def check_dir(self): 
         if not os.path.exists('./Dataset'):
@@ -428,8 +446,8 @@ class PreProcess_Sintec():
             axs[i].legend()
             axs[i].grid('both')
         plt.savefig(f'{self.plt_Feat_path}/{self.patient}_feat.png')
+        if self.showplot: plt.show()
         plt.close()
-        # plt.show()
 
     def main(self):
 
@@ -444,10 +462,10 @@ class PreProcess_Sintec():
 
 
 if __name__=='__main__':
-    # file = '3903282_pat.csv'#'3904308_pat.csv' #'3400715_pat.csv'     3904396_pat
-    # PrePS = PreProcess_Sintec(file=file)   #3600490   (3602521 shekam dard)
-    # PrePS.main()
-    # breakpoint()
+    file = '3150378_0008.csv'#'3904308_pat.csv' #'3400715_pat.csv'     3904396_pat
+    PrePS = PreProcess_Sintec(file=file)   #3600490   (3602521 shekam dard)
+    PrePS.main()
+    breakpoint()
 
     df_err = pd.DataFrame(columns=['patient', 'error'])
     for n,file in enumerate(os.listdir('./Patients/')):
@@ -463,34 +481,7 @@ if __name__=='__main__':
             except Exception as e:
                 print(f"{patient} didn't complete")
                 print(e)
-                # df,_ = PrePS.read_data(file)
-                # fig, axs = plt.subplots(3, 1)
-                # fig.set_size_inches(PrePS.figsize)
-                # df.plot(ax=axs[0],y='II')
-                # df.plot(ax=axs[1],y='ABP')
-                # df.plot(ax=axs[2],y='PLETH')
-                # axs[0].set_ylabel('-----')
-                # axs[0].set_title(f'Original signal for patient: {patient}')
-                # if not os.path.exists(f'{PrePS.plt_Feat_path}/error_Plot'):
-                #     os.mkdir(f'{PrePS.plt_Feat_path}/error_Plot')
-                # plt.savefig(f'{PrePS.plt_Feat_path}/error_Plot/{patient}_orig.png')
-                # plt.close()
-
-                # print(df['ABP'])
-                # print(f'ecg:\n{PrePS.ecg_filt}')
-
-                # if df['ABP'].isnull().values.all() or (df['ABP'] == 0).all():
-                #     state = 'The ABP signal does not exist'
-
-                # elif (PrePS.ecg_filt == 0).all() or np.isnan(PrePS.ecg_filt).all():
-                #     state = 'The ECG signal does not exist after filtering'
-
-                # elif (PrePS.ppg_filt == 0).all() or np.isnan(PrePS.ppg_filt).all():
-                #     state = 'The ECG signal does not exist after filtering'
-
-                # else:
-                #     state = 'Unkown'
-
+                
                 df_err.loc[len(df_err)] = {'patient':patient,'error':e}
                 # with open('./feature_error.txt','a') as f:
                 #     f.write(f'\n{patient}\n')

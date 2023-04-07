@@ -262,17 +262,13 @@ class lstm_sintec(object):
         fig,axs = plt.subplots(1,2)
         fig.set_size_inches(self.figsize)
 
-        axs[0].hist(dbp_err, bins=20, rwidth=0.8)
-        axs[0].set_xlabel('Error(mmHg)')
-        axs[0].set_ylabel('Frequencies')
-        axs[0].set_title('Histogram of error DBP')
-        axs[0].grid()
-
-        axs[1].hist(sbp_err, bins=20, rwidth=0.8)
-        axs[1].set_xlabel('Error(mmHg)')
-        axs[1].set_ylabel('Frequencies')
-        axs[1].set_title('Histogram of error SBP')
-        axs[1].grid()
+        output={axs[0]:[dbp_err,'DBP'], axs[1]:[sbp_err, 'SBP']}
+        for ax in axs:
+            ax.hist(output[ax][0], bins=20, rwidth=0.8)
+            ax.set_xlabel('Error(mmHg)')
+            ax.set_ylabel('Frequencies')
+            ax.set_title(f'Histogram of error {output[ax][1]}')
+            ax.grid()
         if self.showplot: plt.show()
         plt.savefig(f'{self.plot_path}/Hist_all_MAE.png')
 
@@ -302,7 +298,13 @@ if __name__=='__main__':
                     f.write(f'{e}\n')
                     f.write('------>>>>>><<<<<--------')
                     print("An error occurred:", e)
-    print('----->>>> Finish <<<<-------')            
+    print('----->>>> Finish <<<<-------')
+    
+    if os.path.isfile('./my_dict.json'):
+        with open('./my_dict.json','r') as f:
+            data = json.load(f)
+        Error_Table.update(data)
+
     with open('./my_dict.json', "w") as f:
         json.dump(Error_Table, f, indent=4)
     print(f'Number of patients that algorithim can predict: {len(Error_Table)}')
