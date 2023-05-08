@@ -79,7 +79,7 @@ def total_err(error_dict):
 
 
 if __name__ == '__main__':
-    with open('./my_dict.json', 'r') as js:
+    with open('./MAE_result.json', 'r') as js:
         json_dict = json.load(js)
 
     data, max_dbp, max_sbp = AAMI_test(json_dict)

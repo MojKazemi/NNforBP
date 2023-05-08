@@ -1,30 +1,31 @@
 # -*- coding: utf-8 -*-
 import pandas as pd
 import numpy as np
-import math
-import os
+import math, os, joblib, json
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 from sklearn.model_selection import GridSearchCV
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
+from sklearn.inspection import permutation_importance
 import tensorflow as tf
 import keras
 from sklearn.model_selection import KFold
 from keras.models import Sequential
-from keras.layers import Conv1D, LSTM, Dense, BatchNormalization, Dropout, Activation
+from keras.layers import Conv1D, LSTM, Dense, BatchNormalization, Dropout, Activation, Reshape
 from keras.layers.convolutional import MaxPooling1D
 from keras.wrappers.scikit_learn import KerasRegressor
 from sklearn.model_selection import train_test_split
 from keras.models import load_model
-import joblib
+
+
 
 class lstm_sintec(object):
     '''
      LSTM NN Model for Prediction the Blood Presure
     '''
-    def __init__(self,patient):
+    def __init__(self, patient, showplot= False):
         self.TRAIN_PERC = 0.75
         self.regr_path = './Dataset'
         self.check_dir()
@@ -32,13 +33,13 @@ class lstm_sintec(object):
         self.final_model = './Final_Model'
         self.patient = patient
         self.df = pd.read_csv(f'{self.regr_path}/{patient}.csv').dropna() 
-        input_col = ['Tr', 'SPs_new', 'UpTime', 'BTB_PPG', 'PPG_h',
+        self.input_col = ['Tr', 'SPs_new', 'UpTime', 'BTB_PPG', 'PPG_h',
                      'R', 'BTB_R', 'P', 'T', 'Q', 'S', 'HR']
         output_col = ['DBP', 'SBP']
-        self.X = self.df[input_col]
+        self.X = self.df[self.input_col]
         self.y = self.df[output_col]
         self.time = self.df['Time'].values
-        self.showplot = False
+        self.showplot = showplot
         plt.style.use('seaborn-darkgrid')
         self.figsize = (15,9)
 
@@ -52,7 +53,7 @@ class lstm_sintec(object):
         # Normaliziation
         x = self.X.values
         y = self.y.values
-
+        print(x.shape)
         scale_x = StandardScaler()
         X_scaled = scale_x.fit_transform(x)
 
@@ -61,47 +62,40 @@ class lstm_sintec(object):
 
         # print(f"Number of features before PCA: {X_scaled.shape[1]}")
         # Apply PCA to the data
-        pca = PCA(n_components=0.95)
-        X_scaled = pca.fit_transform(X_scaled)
-
-        # Save the PCA model
-        # joblib.dump(pca, f'{self.final_model}/pca_{self.patient}.joblib')
+        self.pca = PCA(n_components=0.95)
+        X_scaled = self.pca.fit_transform(X_scaled)
 
         train_size = int(self.TRAIN_PERC*len(X_scaled))
 
-        x_Sep, y_Sep = X_scaled[train_size:], y_scaled[train_size:]
+        x_test, y_test = X_scaled[train_size:], y_scaled[train_size:]
         X_scaled, y_scaled = X_scaled[:train_size], y_scaled[:train_size]
 
         # Divide the data into train, and test sets
         x_train, x_val, y_train, y_val = train_test_split(X_scaled, y_scaled, test_size=0.15, random_state=0)
 
-        # reshape dataset
-        xtrain_reshape = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1))
-        x_Sep_re = np.reshape(x_Sep,(x_Sep.shape[0],x_Sep.shape[1],1))
-        xval_reshape = np.reshape(x_val, (x_val.shape[0], x_val.shape[1], 1))
         data = {
-            'Train':{'x':xtrain_reshape,'y':y_train},
-            'Val':{'x':xval_reshape,'y':y_val},
-            'Sep':{'x':x_Sep_re,'y':y_Sep},
+            'Train':{'x':x_train,'y':y_train},
+            'Val':{'x':x_val,'y':y_val},
+            'test':{'x':x_test,'y':y_test},
             'Dataset':{'x':X_scaled,'y':y_scaled},
             'scaler':{'x':scale_x,'y':scale_y}
         }
         return data
 
     def get_model(self, n_features, units1=128,units2=128,units3=128,_learningRate=.01):
-        def scaled_sigmoid(x):
-          return 400 * (1 / (1 + tf.exp(-x)))
-
-        keras.utils.get_custom_objects()['scaled_sigmoid'] = Activation(scaled_sigmoid)
+        # def scaled_sigmoid(x):
+        #   return 400 * (1 / (1 + tf.exp(-x)))
+        # keras.utils.get_custom_objects()['scaled_sigmoid'] = Activation(scaled_sigmoid)
 
         model = Sequential(name='model_LSTM')
+        model.add(Reshape((n_features, 1), input_shape=(n_features,)))
         model.add(Conv1D(units1, kernel_size=2,
                   activation='relu', input_shape=(n_features, 1), name='Conv1D_1'))
         model.add(MaxPooling1D(pool_size=2, strides=2, name='MaxPooling1D_1'))
         # model.add(BatchNormalization())
-        model.add(Conv1D(units2, kernel_size=2,
-                  activation='relu', name='Conv1D_2'))
-        model.add(MaxPooling1D(pool_size=2, strides=2, name='MaxPooling1D_2'))
+        # model.add(Conv1D(units2, kernel_size=2,
+        #           activation='relu', name='Conv1D_2'))
+        # model.add(MaxPooling1D(pool_size=2, strides=2, name='MaxPooling1D_2'))
         model.add(LSTM(units3, activation='tanh', name='LSTM'))
         model.add(Dropout(0.5))
         model.add(Dense(2, activation='linear', name='Dense'))  # scaled_sigmoid
@@ -124,7 +118,7 @@ class lstm_sintec(object):
         if self.showplot: plt.show()
         plt.close()
     
-    def plot_pred(self,model,X_scaled,y_scaled, y_Sep, y_Sep_hat,data):
+    def plot_pred(self,model,X_scaled,y_scaled, y_test, y_test_hat,data):
 
         y_hat = model.predict(X_scaled)
         y_hat = data['scaler']['y'].inverse_transform(y_hat)
@@ -132,8 +126,8 @@ class lstm_sintec(object):
         # y_hat = y_hat * self.ssy + self.mmy
         # y = y_scaled * self.ssy + self.mmy
 
-        y = np.concatenate((y,y_Sep), axis=0)
-        y_hat = np.concatenate((y_hat,y_Sep_hat), axis=0)
+        y = np.concatenate((y,y_test), axis=0)
+        y_hat = np.concatenate((y_hat,y_test_hat), axis=0)
 
         fig, axs = plt.subplots(2, 3)
         fig.set_size_inches(self.figsize)
@@ -177,58 +171,63 @@ class lstm_sintec(object):
         '''
           SelectSBP = True :SBP otherwise DBP
         '''
-        Train_data = self.data_prepare()
+        data = self.data_prepare()
 
-        xtrain = Train_data['Train']['x']
-        ytrain = Train_data['Train']['y']
-        _, n_features,_ = xtrain.shape
+        xtrain = data['Train']['x']
+        ytrain = data['Train']['y']
+        _, n_features = xtrain.shape
 
         print(f"Number of features after PCA: {xtrain.shape[1]}")
 
         # Make Model
         model = self.get_model(n_features, units1,units2,units3,_learningRate)
-        # model.summary()
+        tf.keras.utils.plot_model(model, to_file='conv1d.png', show_shapes=True)
+
+        model.summary()
 
         print('The Model is in training mode ...')
         history = model.fit(xtrain, 
                             ytrain,
                             epochs=30, 
-                            validation_data=(Train_data['Val']['x'], Train_data['Val']['y']), 
+                            validation_data=(data['Val']['x'], data['Val']['y']), 
                             verbose=0)
         print('Training complete.')
 
         model.save(f'{self.final_model}/model_{self.patient}.h5')
 
-        self.history_plot(history)
-        return history, model
+        self.history_plot(history)   
+
+        feature_imp = self.feature_effect(model,data)
+
+        return history, model, feature_imp
 
     def check_model(self,model): 
-        RMSError ={'DBP':{},'SBP':{}}
+        MAE_dict ={'DBP':{},'SBP':{}}
         data = self.data_prepare()
         # make predictions
         trainPredict = model.predict(data['Train']['x'])
         # testPredict = model.predict(data['Test']['x'])
-        y_Sep_hat = model.predict(data['Sep']['x'])
+        y_test_hat = model.predict(data['test']['x'])
 
-        X_scaled = np.reshape(data['Dataset']['x'],(data['Dataset']['x'].shape[0],data['Dataset']['x'].shape[1],1))
+        X_scaled = data['Dataset']['x'] #np.reshape(data['Dataset']['x'],(data['Dataset']['x'].shape[0],data['Dataset']['x'].shape[1],1))
 
         trainPredict = data['scaler']['y'].inverse_transform(trainPredict)
         ytrain = data['scaler']['y'].inverse_transform(data['Train']['y'])
-        y_Sep_hat = data['scaler']['y'].inverse_transform(y_Sep_hat)
-        y_Sep = data['scaler']['y'].inverse_transform(data['Sep']['y'])
+        y_test_hat = data['scaler']['y'].inverse_transform(y_test_hat)
+        y_test = data['scaler']['y'].inverse_transform(data['test']['y'])
 
-        RMSError['DBP']['Train'] = round(mean_absolute_error(ytrain[:,0], trainPredict[:,0]))
-        print( 'Train Score [DBP] for %s : %.2f MAE' % (self.patient,RMSError['DBP']['Train']))
-        RMSError['DBP']['Test'] = round(mean_absolute_error(y_Sep[:,0], y_Sep_hat[:,0]))
-        print( 'Test Score [DBP] for %s : %.2f MAE' % (self.patient, RMSError['DBP']['Test']))
+        MAE_dict['DBP']['Train'] = round(mean_absolute_error(ytrain[:,0], trainPredict[:,0]))
+        print( 'Train Score [DBP] for %s : %.2f MAE' % (self.patient,MAE_dict['DBP']['Train']))
+        MAE_dict['DBP']['Test'] = round(mean_absolute_error(y_test[:,0], y_test_hat[:,0]))
+        print( 'Test Score [DBP] for %s : %.2f MAE' % (self.patient, MAE_dict['DBP']['Test']))
 
-        RMSError['SBP']['Train'] = round(mean_absolute_error(ytrain[:,1], trainPredict[:,1]))
-        print( 'Train Score [SBP]: %.2f MAE' % (RMSError['SBP']['Train']))
-        RMSError['SBP']['Test'] = round(mean_absolute_error(y_Sep[:,1], y_Sep_hat[:,1]))
-        print( 'Test Score [SBP]: %.2f MAE' % (RMSError['SBP']['Test']))
-        self.plot_pred(model, X_scaled, data['Dataset']['y'],y_Sep,y_Sep_hat,data)
+        MAE_dict['SBP']['Train'] = round(mean_absolute_error(ytrain[:,1], trainPredict[:,1]))
+        print( 'Train Score [SBP]: %.2f MAE' % (MAE_dict['SBP']['Train']))
+        MAE_dict['SBP']['Test'] = round(mean_absolute_error(y_test[:,1], y_test_hat[:,1]))
+        print( 'Test Score [SBP]: %.2f MAE' % (MAE_dict['SBP']['Test']))
+        self.plot_pred(model, X_scaled, data['Dataset']['y'],y_test,y_test_hat,data)
         
-        return RMSError
+        return MAE_dict
 
     def run_gridsearch(self,param_grid):
 
@@ -272,40 +271,69 @@ class lstm_sintec(object):
         if self.showplot: plt.show()
         plt.savefig(f'{self.plot_path}/Hist_all_MAE.png')
 
-if __name__=='__main__':
-    # patient = '3601980'#'3402408' #'3402291'#'3400715'
-    # ls = lstm_sintec(patient=patient)
+    def feature_effect(self,model,data):
+        
+        result = permutation_importance(model,data['Val']['x'], data['Val']['y'], scoring='neg_mean_squared_error')
 
-    import json
-    Error_Table = {}
+        # Reverse PCA transformation to get feature importance scores
+        importances = result.importances_mean
+        inv_importances = self.pca.inverse_transform(importances)
+
+        importances_std = result.importances_std
+        inv_importances_std = self.pca.inverse_transform(importances_std)
+
+        for index, i in enumerate(inv_importances):
+            print(f"Features {self.input_col[index]} : {i:.3f} +/- {inv_importances_std[index]:.3f}")
+
+        return (inv_importances, inv_importances_std)
+        
+
+if __name__=='__main__':
+    patient = '3607464'#'3402408' #'3402291'#'3400715'
+    ls = lstm_sintec(patient=patient, showplot= True)
+    history, model = ls.train_model(units1=128, units2=128, units3=128, _learningRate=.001)
+    MAE_dict = ls.check_model(model)
+    breakpoint()
+
+    if os.path.exists('./result/ML_sys_Error.csv'):
+        df_MAE = pd.read_csv('./result/ML_sys_Error.csv')
+    else:
+        df_MAE = pd.DataFrame(columns=['Patient', 'MAE_DBP_Train','MAE_DBP_Test','MAE_SBP_Train','MAE_SBP_Test'])
+    df_feat_imp = pd.DataFrame(columns=['Tr', 'SPs_new', 'UpTime', 'BTB_PPG', 'PPG_h','R', 'BTB_R', 'P', 'T', 'Q', 'S', 'HR'])
+    df_sys_err = pd.DataFrame(columns=['patient', 'error'])
+
     for n,file in enumerate(os.listdir('./Dataset')):
         if len(file.split('.')) > 1:
             if file.split('.')[1] == 'csv':
-                patient = file.split('.')[0]
-                path ='./Dataset'
-                print(f'Patient: {patient} - {n}\{len(os.listdir(path))}')
                 try:
+                    patient = file.split('.')[0]
+                    path ='./Dataset'
+                    print(f'Patient: {patient} - {n}\{len(os.listdir(path))}')
+                    # try:
                     ls = lstm_sintec(patient=patient)
 
-                    history, model = ls.train_model(units1=128, units2=128, units3=128, _learningRate=.001)
+                    history, model, feature_imp = ls.train_model(units1=128, units2=128, units3=128, _learningRate=.001)
+                    # print(len(feature_imp[0]))
+                    df_feat_imp.loc[len(df_feat_imp)] = feature_imp[0]
+                    MAE_dict = ls.check_model(model)
+                    df_MAE.loc[len(df_MAE)] = [patient, MAE_dict['DBP']['Train'], MAE_dict['DBP']['Test'],
+                                                    MAE_dict['SBP']['Train'], MAE_dict['SBP']['Test']]
 
-                    RMSError = ls.check_model(model)
-                    Error_Table[patient] = RMSError
                 except Exception as e:
-                    print(f"{patient} didn't complete")
-                    f = open('error_result.txt', 'a')
-                    f.write(f'\n{patient}\n')
-                    f.write(f'{e}\n')
-                    f.write('------>>>>>><<<<<--------')
-                    print("An error occurred:", e)
+                    print(f"{patient} didn't complete because {e}")
+                    df_sys_err.loc[len(df_sys_err)] = {'patient':patient,'error':e}
+
+    df_sys_err.to_csv('./result/ML_sys_Error.csv')
+    df_feat_imp.to_csv('./result/feat_imp.csv')
+    df_MAE.to_csv('./result/MAE_results.csv')
     print('----->>>> Finish <<<<-------')
     
-    if os.path.isfile('./my_dict.json'):
-        with open('./my_dict.json','r') as f:
-            data = json.load(f)
-        Error_Table.update(data)
+    # if os.path.isfile('./result/MAE_result.json'):
+    #     with open('./MAE_result.json','r') as f:
+    #         data = json.load(f)
+    #     MAE_dicts.update(data)
 
-    with open('./my_dict.json', "w") as f:
-        json.dump(Error_Table, f, indent=4)
-    print(f'Number of patients that algorithim can predict: {len(Error_Table)}')
-    ls.total_err(Error_Table)
+    # with open('./result/MAE_result.json', "w") as f:
+    #     json.dump(MAE_dicts, f, indent=4)
+    # print(f'Number of patients that algorithim can predict: {len(MAE_dicts)}')
+    # ls.total_err(MAE_dicts)
