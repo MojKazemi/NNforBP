@@ -10,7 +10,7 @@ from SintecProj import SintecProj
 class PreProcess_Sintec():
 
     def __init__(self,file = '3400715_pat.csv',pat_dir =  './Patients', result_dir = '.'):
-        self.showplot = True
+        self.showplot = False
         self.fs = 125
         self.figsize = (15,9)
         self.patient_path = pat_dir
@@ -80,6 +80,7 @@ class PreProcess_Sintec():
         axs[0,0].set_title(f'Initial Signals of patient: {pat_name}')
 
         df = df.dropna(subset=['ABP'])
+        # df.reset_index(inplace=True)
 
         for sig in df.columns[1:]:
             diff = df[sig].diff(periods=2)
@@ -116,61 +117,6 @@ class PreProcess_Sintec():
         
         if np.isnan(self.ecg_filt).all():
             raise ValueError('After filtering the ECG signal got Nan')
-
-
-
-        
-
-        
-        # plt.title('ECG Filtered')
-        # plt.show()
-        # result = adfuller(self.ecg_filt)
-        # print(f'ADF Statistic: {result[0]}')
-        # print(f'n_lags: {result[1]}')
-        # print(f'p-value: {result[1]}')
-        # for key, value in result[4].items():
-        #     print('Critial Values:')
-        #     print(f'   {key}, {value}')  
-        # print('-------------------------')  
-        
-        # fig, axs = plt.subplots(3)
-        
-        # diff_signal = np.diff(self.ecg_filt)
-
-        # threshold = 0.3 * max(self.ecg_filt)
-        # non_stationary_indices = np.where(np.abs(diff_signal) > threshold)[0]
-        # # clean_signal = np.delete(self.ecg_filt, non_stationary_indices)
-        # clean_signal= [np.nan for i in range(len(self.ecg_filt))]
-        # for i in non_stationary_indices:
-        #     clean_signal[i] = 0
-        # axs[0].plot(self.ecg_filt, 'b')
-        # axs[0].plot(clean_signal, '*r')
-        # axs[0].set_title('remove stationary part of ecg')
-
-        
-        # threshold = 0.25 * np.std(self.ppg_filt)
-        # diff_signal = np.diff(self.ppg_filt)
-        # non_stationary_indices = np.where(np.abs(diff_signal) > threshold)[0]
-        # # clean_signal = np.delete(self.ppg_filt, non_stationary_indices)
-        # clean_signal = [np.nan for i in range(len(self.ppg_filt))]
-        # for i in non_stationary_indices:
-        #     clean_signal[i] = 0
-        # axs[1].plot(self.ppg_filt, 'b')
-        # axs[1].plot(clean_signal, '*r')
-        # axs[1].set_title('remove stationary part of ppg')
-
-        # threshold = 5
-        # abp_val = self.df['ABP'].values
-        # diff_signal = np.diff(abp_val)
-        # non_stationary_indices = np.where(np.abs(diff_signal) > threshold)[0]
-        # clean_signal= [np.nan for i in range(len(abp_val))]
-        # for i in non_stationary_indices:
-        #     clean_signal[i] = 0
-        # axs[2].plot(abp_val, 'b')
-        # axs[2].plot(clean_signal, '*r')
-        # axs[2].set_title('remove stationary part of ABP')
-
-        # plt.show()
 
     def check_dir(self,result_dir): 
         if not os.path.exists(f'{result_dir}/Dataset'):
@@ -553,9 +499,9 @@ class PreProcess_Sintec():
         self.Med_df_Out = interp_output.round(3)
         self.Med_df_Out.to_csv(f'{self.regr_path}/{self.patient}.csv')
 
-    def removeoutliers(self, _data, _list, min_samplesv=5):
+    def removeoutliers(self, _data, _list):
 
-        # print(_list)
+        min_samplesv = round(0.04 * len(_list))
         tmp_data = _data[_list]
         epsv = np.std(tmp_data)
         # print(f'epsv = {epsv}')
@@ -565,12 +511,12 @@ class PreProcess_Sintec():
         numOutliers = np.argwhere(clusters.labels_ == 1|-1|2).flatten()
         # print(numOutliers)
         for i in numOutliers:
-            if i == 0:
-                mean_value = (_data[_list[i+1]] + _data[_list[i+2]])/2
-            elif i == len(_list)-1:
-                mean_value = (_data[_list[i-2]] + _data[_list[i-1]])/2
+            if i == 0 or i==1 or i==2 or i==3: 
+                mean_value = np.mean(_data[_list[i+1:7]])
+            elif i == len(_list)-1 or i == len(_list)-2 or i == len(_list)-3 or i == len(_list)-4:
+                mean_value = np.mean(_data[_list[i-6:i]])
             else:
-                mean_value = (_data[_list[i-1]] + _data[_list[i+1]])/2
+                mean_value = (np.mean(_data[_list[i-3:i]]) + np.mean(_data[_list[i+1:i+4]]))/2 #(_data[_list[i-1]] + _data[_list[i+1]])/2
 
             _data[_list[i]] = mean_value
         return _data
@@ -580,14 +526,14 @@ if __name__=='__main__':
     patients_folder = '/media/moj/Doc/00 ICT4SS/THESIS DATABASE/Patients_rep'
     result_dir = '/media/moj/Doc/00 ICT4SS/THESIS DATABASE/results'
 
-    file = '3101923_0005.csv'#'3125931_0075.csv'#'3400715_pat.csv'#'3100886_0003.csv'#'3904308_pat.csv' #'3400715_pat.csv'     3904396_pat
-    PrePS = PreProcess_Sintec(file=file, pat_dir = patients_folder,result_dir=result_dir)   #3600490   (3602521 shekam dard)
-    PrePS.main()
-    breakpoint()
+    # file = '3101871_0003.csv'#'3125931_0075.csv'#'3400715_pat.csv'#'3100886_0003.csv'#'3904308_pat.csv' #'3400715_pat.csv'     3904396_pat
+    # PrePS = PreProcess_Sintec(file=file, pat_dir = patients_folder,result_dir=result_dir)   #3600490   (3602521 shekam dard)
+    # PrePS.main()
+    # breakpoint()
 
     df_err = pd.DataFrame(columns=['patient', 'error'])
 
-    for n,file in enumerate(os.listdir(patients_folder)[10:]):
+    for n,file in enumerate(os.listdir(patients_folder)):
         
          if len(file.split('.')) > 1:
             if file.split('.')[1] == 'csv':

@@ -25,12 +25,12 @@ class lstm_sintec(object):
     '''
      LSTM NN Model for Prediction the Blood Presure
     '''
-    def __init__(self, patient, showplot= False):
+    def __init__(self, patient, showplot= False,root_dir =''):
         self.TRAIN_PERC = 0.75
-        self.regr_path = './Dataset'
-        self.check_dir()
-        self.plot_path = './Plots'
-        self.final_model = './Final_Model'
+        self.regr_path = f'{root_dir}/Dataset'
+        self.check_dir(root_dir)
+        self.plot_path = f'{root_dir}/Plots_ML'
+        self.final_model = f'{root_dir}/Final_Model'
         self.patient = patient
         self.df = pd.read_csv(f'{self.regr_path}/{patient}.csv').dropna() 
         self.input_col = ['Tr', 'SPs_new', 'UpTime', 'BTB_PPG', 'PPG_h',
@@ -43,11 +43,11 @@ class lstm_sintec(object):
         plt.style.use('seaborn-darkgrid')
         self.figsize = (15,9)
 
-    def check_dir(self):
-        if not os.path.exists('./Plots'):
-          os.mkdir('./Plots')
-        if not os.path.exists('./Final_Model'):
-            os.mkdir('./Final_Model')
+    def check_dir(self,root_dir):
+        if not os.path.exists(f'{root_dir}/Plots_ML'):
+          os.mkdir(f'{root_dir}/Plots_ML')
+        if not os.path.exists(f'{root_dir}/Final_Model'):
+            os.mkdir(f'{root_dir}/Final_Model')
 
     def data_prepare(self):
         # Normaliziation
@@ -82,7 +82,7 @@ class lstm_sintec(object):
         }
         return data
 
-    def get_model(self, n_features, units1=128,units2=128,units3=128,_learningRate=.01):
+    def get_model(self, n_features, units1=128,units2=128,_learningRate=.01):
         # def scaled_sigmoid(x):
         #   return 400 * (1 / (1 + tf.exp(-x)))
         # keras.utils.get_custom_objects()['scaled_sigmoid'] = Activation(scaled_sigmoid)
@@ -92,11 +92,11 @@ class lstm_sintec(object):
         model.add(Conv1D(units1, kernel_size=2,
                   activation='relu', input_shape=(n_features, 1), name='Conv1D_1'))
         model.add(MaxPooling1D(pool_size=2, strides=2, name='MaxPooling1D_1'))
-        # model.add(BatchNormalization())
+        model.add(BatchNormalization())
         # model.add(Conv1D(units2, kernel_size=2,
         #           activation='relu', name='Conv1D_2'))
         # model.add(MaxPooling1D(pool_size=2, strides=2, name='MaxPooling1D_2'))
-        model.add(LSTM(units3, activation='tanh', name='LSTM'))
+        model.add(LSTM(units2, activation='tanh', name='LSTM'))
         model.add(Dropout(0.5))
         model.add(Dense(2, activation='linear', name='Dense'))  # scaled_sigmoid
 
@@ -167,7 +167,7 @@ class lstm_sintec(object):
         if self.showplot: plt.show()
         plt.close()
                 
-    def train_model(self,units1=20,units2=20,units3=35,_learningRate=.01):
+    def train_model(self,units1=20,units2=35,_learningRate=.01):
         '''
           SelectSBP = True :SBP otherwise DBP
         '''
@@ -180,7 +180,7 @@ class lstm_sintec(object):
         print(f"Number of features after PCA: {xtrain.shape[1]}")
 
         # Make Model
-        model = self.get_model(n_features, units1,units2,units3,_learningRate)
+        model = self.get_model(n_features, units1,units2,_learningRate)
         tf.keras.utils.plot_model(model, to_file='conv1d.png', show_shapes=True)
 
         model.summary()
@@ -232,7 +232,7 @@ class lstm_sintec(object):
     def run_gridsearch(self,param_grid):
 
         data =  self.data_prepare()
-        _, n_features,_ = data['Train']['x'].shape
+        _, n_features= data['Train']['x'].shape
         param_grid['n_features'] = [n_features]
 
         print(f"Number of features after PCA: {n_features}")
@@ -247,6 +247,7 @@ class lstm_sintec(object):
         grid_result = grid.fit(data['Train']['x'], data['Train']['y'])
         print(f"best_estimator_: {grid_result.best_estimator_}")
         print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
+        return grid_result
 
     def total_err(self,error_dict):
         data = error_dict
@@ -286,47 +287,16 @@ class lstm_sintec(object):
             print(f"Features {self.input_col[index]} : {i:.3f} +/- {inv_importances_std[index]:.3f}")
 
         return (inv_importances, inv_importances_std)
-        
+
 
 if __name__=='__main__':
     patient = '3607464'#'3402408' #'3402291'#'3400715'
     ls = lstm_sintec(patient=patient, showplot= True)
-    history, model = ls.train_model(units1=128, units2=128, units3=128, _learningRate=.001)
+    history, model = ls.train_model(units1=128, units2=128, _learningRate=.001)
     MAE_dict = ls.check_model(model)
     breakpoint()
 
-    if os.path.exists('./result/ML_sys_Error.csv'):
-        df_MAE = pd.read_csv('./result/ML_sys_Error.csv')
-    else:
-        df_MAE = pd.DataFrame(columns=['Patient', 'MAE_DBP_Train','MAE_DBP_Test','MAE_SBP_Train','MAE_SBP_Test'])
-    df_feat_imp = pd.DataFrame(columns=['Tr', 'SPs_new', 'UpTime', 'BTB_PPG', 'PPG_h','R', 'BTB_R', 'P', 'T', 'Q', 'S', 'HR'])
-    df_sys_err = pd.DataFrame(columns=['patient', 'error'])
-
-    for n,file in enumerate(os.listdir('./Dataset')):
-        if len(file.split('.')) > 1:
-            if file.split('.')[1] == 'csv':
-                try:
-                    patient = file.split('.')[0]
-                    path ='./Dataset'
-                    print(f'Patient: {patient} - {n}\{len(os.listdir(path))}')
-                    # try:
-                    ls = lstm_sintec(patient=patient)
-
-                    history, model, feature_imp = ls.train_model(units1=128, units2=128, units3=128, _learningRate=.001)
-                    # print(len(feature_imp[0]))
-                    df_feat_imp.loc[len(df_feat_imp)] = feature_imp[0]
-                    MAE_dict = ls.check_model(model)
-                    df_MAE.loc[len(df_MAE)] = [patient, MAE_dict['DBP']['Train'], MAE_dict['DBP']['Test'],
-                                                    MAE_dict['SBP']['Train'], MAE_dict['SBP']['Test']]
-
-                except Exception as e:
-                    print(f"{patient} didn't complete because {e}")
-                    df_sys_err.loc[len(df_sys_err)] = {'patient':patient,'error':e}
-
-    df_sys_err.to_csv('./result/ML_sys_Error.csv')
-    df_feat_imp.to_csv('./result/feat_imp.csv')
-    df_MAE.to_csv('./result/MAE_results.csv')
-    print('----->>>> Finish <<<<-------')
+    
     
     # if os.path.isfile('./result/MAE_result.json'):
     #     with open('./MAE_result.json','r') as f:
